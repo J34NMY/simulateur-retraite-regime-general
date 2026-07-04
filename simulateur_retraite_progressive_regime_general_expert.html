@@ -404,6 +404,31 @@
     };
   }
 
+  // Projection de la pension a la retraite definitive, apres une periode de RP a quotite/salaire reduit donnes.
+  // Reutilisee par calculer() (situation choisie) et afficherComparateur() (chaque quotite du tableau).
+  function calculerProjectionDefinitive(dateNaissance, dateDepartRP, dateDepartDefinitif, trimestresValidesRP, sam, pointsAgircArrco, salaireAnnuelReduit){
+    const PRIX_ACHAT_POINT_ARRCO = 20.1877;
+    const TAUX_CONTRACTUEL_T1 = 0.0620;
+    const dureeRPAnnees = Math.max(0, moisEntre(dateDepartRP, dateDepartDefinitif)/12);
+    const nbTrimValidablesParAnLocal = Math.min(4, Math.floor(salaireAnnuelReduit / SEUIL_TRIMESTRE_SMIC));
+
+    const trimestresSupplementairesRP = Math.round(nbTrimValidablesParAnLocal * dureeRPAnnees);
+    const trimestresValidesDefinitif = trimestresValidesRP + trimestresSupplementairesRP;
+
+    const pointsAnnuelsRP = Math.min(salaireAnnuelReduit, PASS_2026) * TAUX_CONTRACTUEL_T1 / PRIX_ACHAT_POINT_ARRCO;
+    const pointsSupplementairesRP = Math.round(pointsAnnuelsRP * dureeRPAnnees);
+    const pointsAgircArrcoDefinitif = pointsAgircArrco + pointsSupplementairesRP;
+
+    const resPensionDefinitive = calculerPensionBase(dateNaissance, dateDepartDefinitif, trimestresValidesDefinitif, sam);
+    const trimManquantsDefinitifArrco = resPensionDefinitive.typeCoef === 'decote' ? Math.min(resPensionDefinitive.trimManquantsDuree, resPensionDefinitive.trimManquantsAge) : 0;
+    const coefAnticipationArrcoDefinitif = getCoefficientAnticipationArrco(trimManquantsDefinitifArrco);
+    const pensionArrcoDefinitiveMensuelle = (pointsAgircArrcoDefinitif * VALEUR_SERVICE_POINT_ARRCO / 12) * coefAnticipationArrcoDefinitif;
+    const pensionTotaleDefinitive = resPensionDefinitive.pensionMensuelle + pensionArrcoDefinitiveMensuelle;
+
+    return { dureeRPAnnees, trimestresValidesDefinitif, pointsAgircArrcoDefinitif, resPensionDefinitive,
+             trimManquantsDefinitifArrco, coefAnticipationArrcoDefinitif, pensionArrcoDefinitiveMensuelle, pensionTotaleDefinitive };
+  }
+
   function calculer(){
     const dnVal = document.getElementById('dateNaissance').value;
     const drpVal = document.getElementById('dateDepartRP').value;
@@ -518,26 +543,11 @@
     // PROJECTION A LA RETRAITE DEFINITIVE (fin de la RP)
     // ============================================
     const ddefVal = document.getElementById('dateDepartDefinitif').value;
+    let projectionDefinitive = null;
     if(ddefVal){
       const dateDepartDefinitif = new Date(ddefVal);
-      const dureeRPAnnees = Math.max(0, moisEntre(dateDepartRP, dateDepartDefinitif)/12);
-
-      // Trimestres supplementaires accumules PENDANT la RP (limites par le seuil de validation, cf. alerte ci-dessus)
-      const trimestresSupplementairesRP = Math.round(nbTrimValidablesParAn * dureeRPAnnees);
-      const trimestresValidesDefinitif = trimestresValidesRP + trimestresSupplementairesRP;
-
-      // Points Agirc-Arrco supplementaires accumules PENDANT la RP (sur la base du salaire reduit, tranche 1, taux contractuel 6.20%)
-      const PRIX_ACHAT_POINT_ARRCO = 20.1877;
-      const TAUX_CONTRACTUEL_T1 = 0.0620;
-      const pointsAnnuelsRP = Math.min(salaireAnnuelReduit, PASS_2026) * TAUX_CONTRACTUEL_T1 / PRIX_ACHAT_POINT_ARRCO;
-      const pointsSupplementairesRP = Math.round(pointsAnnuelsRP * dureeRPAnnees);
-      const pointsAgircArrcoDefinitif = pointsAgircArrco + pointsSupplementairesRP;
-
-      const resPensionDefinitive = calculerPensionBase(dateNaissance, dateDepartDefinitif, trimestresValidesDefinitif, sam);
-      const trimManquantsDefinitifArrco = resPensionDefinitive.typeCoef === 'decote' ? Math.min(resPensionDefinitive.trimManquantsDuree, resPensionDefinitive.trimManquantsAge) : 0;
-      const coefAnticipationArrcoDefinitif = getCoefficientAnticipationArrco(trimManquantsDefinitifArrco);
-      const pensionArrcoDefinitiveMensuelle = (pointsAgircArrcoDefinitif * VALEUR_SERVICE_POINT_ARRCO / 12) * coefAnticipationArrcoDefinitif;
-      const pensionTotaleDefinitive = resPensionDefinitive.pensionMensuelle + pensionArrcoDefinitiveMensuelle;
+      projectionDefinitive = calculerProjectionDefinitive(dateNaissance, dateDepartRP, dateDepartDefinitif, trimestresValidesRP, sam, pointsAgircArrco, salaireAnnuelReduit);
+      const { dureeRPAnnees, trimestresValidesDefinitif, pointsAgircArrcoDefinitif, resPensionDefinitive, trimManquantsDefinitifArrco, coefAnticipationArrcoDefinitif, pensionArrcoDefinitiveMensuelle, pensionTotaleDefinitive } = projectionDefinitive;
 
       html += '<div class="result-section">';
       html += '<h3>Pension à la retraite définitive (' + formatDate(dateDepartDefinitif) + ')</h3>';
@@ -565,11 +575,11 @@
 
     document.getElementById('resultat').innerHTML = html;
 
-    afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteRP, pointsAgircArrco, coefAnticipationArrco);
+    afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteRP, pointsAgircArrco, coefAnticipationArrco, ddefVal ? new Date(ddefVal) : null);
     switchTab('resultats');
   }
 
-  function afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteActuelle, pointsAgircArrco, coefAnticipationArrco){
+  function afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteActuelle, pointsAgircArrco, coefAnticipationArrco, dateDepartDefinitif){
     const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
     const pensionArrcoTheoriqueMensuelle = (pointsAgircArrco * VALEUR_SERVICE_POINT_ARRCO) / 12;
     const quotites = [0.40, 0.50, 0.60, 0.70, 0.80];
@@ -579,13 +589,19 @@
       const pensionArrcoPart = pensionArrcoTheoriqueMensuelle * fraction * coefAnticipationArrco;
       const pensionPart = pensionBasePart + pensionArrcoPart;
       const salairePart = salaireActuelBrut * q;
-      return { q, salairePart, pensionPart, total: salairePart+pensionPart, ok: Math.abs(q-quotiteActuelle)<0.001 };
+      let pensionDefinitive = null;
+      if(dateDepartDefinitif){
+        const salaireAnnuelReduitQ = salaireActuelBrut * q * 12;
+        const proj = calculerProjectionDefinitive(dateNaissance, dateDepartRP, dateDepartDefinitif, trimestresValidesRP, sam, pointsAgircArrco, salaireAnnuelReduitQ);
+        pensionDefinitive = proj.pensionTotaleDefinitive;
+      }
+      return { q, salairePart, pensionPart, total: salairePart+pensionPart, pensionDefinitive, ok: Math.abs(q-quotiteActuelle)<0.001 };
     });
     const maxTotal = Math.max(...lignes.map(l=>l.total));
 
     let html = '<div class="result-section"><h3>Comparaison du revenu total selon la quotité choisie</h3>';
     html += '<p style="font-size:.82rem;color:var(--gris-txt);margin-bottom:10px;">Salaire réduit + fraction de pension (base + complémentaire), pour un départ en RP le ' + formatDate(dateDepartRP) + '.</p>';
-    html += '<table><thead><tr><th>Quotité</th><th style="text-align:right;">Salaire réduit</th><th style="text-align:right;">Fraction pension</th><th style="text-align:right;">Total mensuel</th><th>Répartition</th></tr></thead><tbody>';
+    html += '<table><thead><tr><th>Quotité</th><th style="text-align:right;">Salaire réduit</th><th style="text-align:right;">Fraction pension</th><th style="text-align:right;">Total pendant la RP</th><th>Répartition</th>' + (dateDepartDefinitif?'<th style="text-align:right;">Pension définitive</th>':'') + '</tr></thead><tbody>';
     lignes.forEach(l=>{
       html += '<tr style="background:'+(l.ok?'#eff6ff':'#fff')+';">';
       html += '<td style="font-weight:'+(l.ok?'700':'400')+';color:'+(l.ok?'var(--bleu)':'inherit')+';">'+(l.q*100).toFixed(0)+' %'+(l.ok?' &larr;':'')+'</td>';
@@ -593,9 +609,13 @@
       html += '<td style="text-align:right;">'+formatEuro(l.pensionPart)+'</td>';
       html += '<td style="text-align:right;font-weight:700;color:'+(l.ok?'var(--bleu)':'var(--vert)')+';">'+formatEuro(l.total)+'</td>';
       html += '<td><div style="background:#e2e8f0;border-radius:3px;height:10px;"><div style="background:'+(l.ok?'var(--bleu)':'var(--vert)')+';border-radius:3px;height:10px;width:'+(l.total/maxTotal*100).toFixed(1)+'%;"></div></div></td>';
+      if(dateDepartDefinitif) html += '<td style="text-align:right;font-weight:600;color:#6d28d9;">'+formatEuro(l.pensionDefinitive)+'</td>';
       html += '</tr>';
     });
     html += '</tbody></table>';
+    if(dateDepartDefinitif){
+      html += '<p style="font-size:.78rem;color:var(--gris-txt);margin-top:8px;">La colonne "Pension définitive" projette le montant perçu après la fin de la RP le ' + formatDate(dateDepartDefinitif) + ' — plus la quotité est basse, plus le salaire pendant la RP est réduit, mais aussi moins de trimestres/points sont accumulés pendant cette période (voir alerte sur le seuil de validation dans les résultats).</p>';
+    }
     html += '<p style="font-size:.78rem;color:var(--gris-txt);margin-top:8px;">Rappel : la quotité doit rester entre 40% et 80%. En-dessous de 40% ou au-dessus de 80%, la retraite progressive n\'est pas accessible.</p>';
     html += '</div>';
     document.getElementById('comparateur').innerHTML = html;
