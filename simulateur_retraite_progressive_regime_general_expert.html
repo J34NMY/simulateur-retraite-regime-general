@@ -50,7 +50,7 @@
   <h2>Salarié du privé &ndash; CNAV (base) &ndash; Aide à la décision</h2>
 
   <div class="banniere">
-    Ce simulateur concerne les <strong>salariés du régime général</strong> (secteur privé, hors régimes spéciaux). Il ne couvre <strong>pas</strong> les fonctionnaires, les professions libérales (CNAVPL), ni les indépendants (SSI). La retraite <strong>complémentaire Agirc-Arrco</strong> n'est <strong>pas encore incluse</strong> dans les montants chiffrés &mdash; voir avertissement dans les résultats.
+    Ce simulateur concerne les <strong>salariés du régime général</strong> (secteur privé, hors régimes spéciaux). Il ne couvre <strong>pas</strong> les fonctionnaires, les professions libérales (CNAVPL), ni les indépendants (SSI). Inclut désormais la retraite <strong>complémentaire Agirc-Arrco</strong> (points, valeur du point, coefficient d'anticipation propre) en plus du régime de base CNAV.
   </div>
 
   <div class="disclaimer-top">
@@ -61,6 +61,7 @@
     <button class="tab-button active" onclick="switchTab('parametres')">Paramètres</button>
     <button class="tab-button" onclick="switchTab('resultats')">Retraite Progressive</button>
     <button class="tab-button" onclick="switchTab('comparateur')">Comparateur quotités</button>
+    <button class="tab-button" onclick="switchTab('rachat')">Analyse Rachat</button>
     <button class="tab-button" onclick="switchTab('sources')">Sources</button>
   </div>
 
@@ -91,7 +92,11 @@
         <label for="sam">Salaire annuel moyen estimé (SAM)</label>
         <input id="sam" type="number" min="0" step="100" value="30000" />
         <small>Moyenne de vos 25 meilleures années de salaire <strong>brut</strong> (primes et heures sup incluses, hors remboursements de frais), chaque année <strong>plafonnée au PASS</strong> de cette année-là (48 060 € en 2026). Attention : ce n'est pas votre dernier salaire — une carrière en forte progression donne un SAM inférieur au dernier salaire perçu.</small>
-        <small style="margin-top:6px;">&#8505;&#65039; Le salaire au-delà du PASS ne compte pas ici, mais génère des points Agirc-Arrco (tranche 2) — pris en compte dans une prochaine version.</small>
+        <small style="margin-top:6px;">&#8505;&#65039; Le salaire au-delà du PASS ne compte pas ici, mais génère des points Agirc-Arrco (tranche 2).</small>
+
+        <label for="pointsAgircArrco">Points Agirc-Arrco accumulés</label>
+        <input id="pointsAgircArrco" type="number" min="0" step="10" value="0" />
+        <small>Visible sur votre relevé de carrière (info-retraite.fr ou agirc-arrco.fr). Sert à calculer votre retraite complémentaire.</small>
       </div>
 
       <div class="col">
@@ -113,6 +118,10 @@
         <label for="dateDepartRP">Date de départ en retraite progressive envisagée</label>
         <input id="dateDepartRP" type="date" />
         <small>Minimum 60 ans + 150 trimestres tous régimes.</small>
+
+        <label for="dateDepartDefinitif">Date de départ définitif envisagée</label>
+        <input id="dateDepartDefinitif" type="date" />
+        <small>Fin de la retraite progressive — projection de votre pension définitive à cette date.</small>
       </div>
     </div>
 
@@ -130,6 +139,61 @@
     <div id="comparateur"><div class="info">Lancez d'abord un calcul dans l'onglet Paramètres.</div></div>
   </div>
 
+  <div id="tab-rachat" class="tab-content">
+    <div class="result-section">
+      <h3>Rachat de trimestres (Versement Pour La Retraite)</h3>
+      <p style="font-size:.86rem;color:var(--gris-txt);">Permet de racheter des trimestres au titre des <strong>années d'études supérieures</strong> ou des <strong>années civiles incomplètes</strong> (années où moins de 4 trimestres ont été validés). Limité à <strong>12 trimestres</strong> sur l'ensemble de la carrière, tous types confondus.</p>
+    </div>
+    <div class="row" style="grid-template-columns:1fr 1fr;">
+      <div class="col">
+        <label for="rachat-nbTrimestres">Nombre de trimestres à racheter</label>
+        <input id="rachat-nbTrimestres" type="number" min="1" max="12" step="1" value="4" />
+
+        <label for="rachat-ageRachat">Âge au moment du rachat (ans)</label>
+        <input id="rachat-ageRachat" type="number" min="20" max="66" step="1" value="55" />
+        <small>Le VPLR est ouvert de 20 à 66 ans révolus.</small>
+
+        <label for="rachat-option">Option de rachat</label>
+        <select id="rachat-option">
+          <option value="taux_seul">Taux seul (moins cher — réduit/annule la décote uniquement)</option>
+          <option value="taux_duree">Taux et durée d'assurance (plus cher — augmente aussi le montant)</option>
+        </select>
+
+        <label for="rachat-trimManquants">Trimestres manquants avant rachat</label>
+        <input id="rachat-trimManquants" type="number" min="0" max="20" step="1" value="8" />
+        <small>Nécessaire pour chiffrer le gain de l'option "Taux seul" (réduction de la décote). Voir l'onglet Retraite Progressive pour connaître ce chiffre.</small>
+
+        <label for="rachat-tauxLivretA">Taux Livret A (comparaison placement)</label>
+        <input id="rachat-tauxLivretA" type="number" min="0" step="0.1" value="1.5" />
+        <small>Taux net en vigueur depuis le 01/02/2026. Modifiable si le taux évolue.</small>
+
+        <label for="rachat-tauxPEA">Taux moyen PEA (comparaison placement)</label>
+        <input id="rachat-tauxPEA" type="number" min="0" step="0.1" value="4.6" />
+        <small>Rendement moyen réellement déclaré par les épargnants sur 5 ans (Baromètre AMF), pas un indice théorique. Non garanti, risque de perte en capital.</small>
+      </div>
+      <div class="col">
+        <label for="rachat-revenuMoyen">Revenu annuel moyen des 3 dernières années</label>
+        <input id="rachat-revenuMoyen" type="number" min="0" step="500" value="35000" />
+        <small>Sert à déterminer la tranche tarifaire (moins de 36 045 € / entre 36 045 € et 48 060 € / plus de 48 060 € — PASS 2026).</small>
+
+        <label for="rachat-TMI">Tranche marginale d'imposition (%)</label>
+        <select id="rachat-TMI">
+          <option value="0">0 %</option>
+          <option value="11" selected>11 %</option>
+          <option value="30">30 %</option>
+          <option value="41">41 %</option>
+          <option value="45">45 %</option>
+        </select>
+        <small>Le rachat est déductible du revenu imposable, sans plafond.</small>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" onclick="analyserRachat()">Analyser la rentabilité</button>
+    </div>
+    <div id="resultat-rachat"></div>
+    <div class="warn">Barème officiel CNAV (circulaire 2026-04 du 05/02/2026), inchangé depuis 2013 en valeur nominale — seuls les seuils de revenu (indexés au PASS) évoluent chaque année. Pour la tranche intermédiaire (36 045 € à 48 060 €), le tarif est exprimé en % de votre revenu propre — demandez un devis officiel à votre caisse pour un montant garanti.</div>
+  </div>
+
   <div id="tab-sources" class="tab-content">
     <div class="result-section">
       <h3>Sources &amp; références réglementaires</h3>
@@ -143,6 +207,9 @@
           <tr><td>Circulaire Cnav 2026-07 du 05/03/2026</td><td>Barème détaillé âge légal / trimestres requis / âge du taux plein par génération</td></tr>
           <tr><td>Art. R351-27 CSS</td><td>Coefficient de minoration (décote) &ndash; 1,25% du taux plein par trimestre manquant</td></tr>
           <tr><td>Art. L351-1-2 et D351-1-4 CSS</td><td>Surcote &ndash; majoration pour trimestres cotisés au-delà de la durée requise</td></tr>
+          <tr><td>Accord national interprofessionnel Agirc-Arrco du 17/11/2017 (modifié)</td><td>Régime de retraite complémentaire par points, coefficient d'anticipation pour carrière incomplète</td></tr>
+          <tr><td>Circulaire Agirc-Arrco 2025-15-DT du 23/10/2025</td><td>Valeur de service du point (1,4386 €) et valeur d'achat (20,1877 €) pour 2026, gelées</td></tr>
+          <tr><td>Art. L351-14-1 CSS ; Circulaire Cnav 2026-04 du 05/02/2026</td><td>Versement pour la retraite (rachat de trimestres) — barème par âge, revenu et option, inchangé en valeur depuis 2013</td></tr>
         </tbody>
       </table>
       <p style="font-size:.82rem;color:var(--gris-txt);margin-top:10px;">Site officiel : <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> (simulateur M@rel, inter-régimes) &middot; <a href="https://www.lassuranceretraite.fr" target="_blank">lassuranceretraite.fr</a></p>
@@ -189,6 +256,72 @@
   const AGE_MIN_RP_ANS = 60;
   const TRIMESTRES_MIN_RP = 150;
   const SEUIL_TRIMESTRE_SMIC = 1803; // seuil de salaire trimestriel 2026 pour valider 1 trimestre (150x SMIC horaire)
+  const PASS_2026 = 48060;
+
+  // ============================================
+  // AGIRC-ARRCO 2026
+  // Source : agirc-arrco.fr (valeurs 2026, gelees), Circulaire Agirc-Arrco 2025-15-DT du 23/10/2025
+  // ============================================
+  const VALEUR_SERVICE_POINT_ARRCO = 1.4386; // EUR, gelee jusqu'au 31/10/2026
+
+  // Coefficient d'anticipation Agirc-Arrco par trimestre manquant (source : Previssima / Agirc-Arrco,
+  // bareme "carrieres courtes"). Plafonne a 20 trimestres manquants (= plafond CNAV egalement).
+  const coefficientAnticipationArrco = {
+    0:1.00, 1:0.99, 2:0.98, 3:0.97, 4:0.96, 5:0.95, 6:0.94, 7:0.93, 8:0.92, 9:0.91, 10:0.90,
+    11:0.89, 12:0.88, 13:0.8675, 14:0.855, 15:0.8425, 16:0.83, 17:0.8175, 18:0.805, 19:0.7925, 20:0.78
+  };
+  function getCoefficientAnticipationArrco(trimestresManquants){
+    const tm = Math.max(0, Math.min(20, Math.round(trimestresManquants)));
+    return coefficientAnticipationArrco[tm];
+  }
+
+  // ============================================
+  // VERSEMENT POUR LA RETRAITE (rachat de trimestres) — Regime general
+  // Source : Circulaire Cnav 2026-04 du 05/02/2026 (barreme inchange depuis 2013 en valeur nominale,
+  // seuls les seuils de revenu evoluent avec le PASS). Age 20 a 66 ans.
+  // Tranches 1 et 3 : montants fixes en euros. Tranche 2 (36045-48060 EUR) : % du revenu propre de l'assure.
+  // ============================================
+  const SEUIL_REVENU_BAS = 36045;   // 75% du PASS 2026
+  const SEUIL_REVENU_HAUT = 48060;  // 100% du PASS 2026
+
+  const baremeVPLR = {
+    taux_seul: {
+      20:{t1:1055,t2:0.0380,t3:1407}, 21:{t1:1076,t2:0.0387,t3:1434}, 22:{t1:1097,t2:0.0395,t3:1462}, 23:{t1:1118,t2:0.0403,t3:1491},
+      24:{t1:1168,t2:0.0420,t3:1557}, 25:{t1:1219,t2:0.0439,t3:1625}, 26:{t1:1271,t2:0.0458,t3:1694}, 27:{t1:1324,t2:0.0477,t3:1765},
+      28:{t1:1377,t2:0.0496,t3:1836}, 29:{t1:1432,t2:0.0516,t3:1909}, 30:{t1:1487,t2:0.0535,t3:1983}, 31:{t1:1543,t2:0.0555,t3:2057},
+      32:{t1:1599,t2:0.0576,t3:2132}, 33:{t1:1656,t2:0.0596,t3:2208}, 34:{t1:1713,t2:0.0617,t3:2284}, 35:{t1:1771,t2:0.0638,t3:2361},
+      36:{t1:1828,t2:0.0658,t3:2438}, 37:{t1:1886,t2:0.0679,t3:2515}, 38:{t1:1945,t2:0.0700,t3:2593}, 39:{t1:2005,t2:0.0722,t3:2673},
+      40:{t1:2065,t2:0.0743,t3:2753}, 41:{t1:2126,t2:0.0765,t3:2834}, 42:{t1:2187,t2:0.0787,t3:2915}, 43:{t1:2247,t2:0.0809,t3:2995},
+      44:{t1:2306,t2:0.0830,t3:3075}, 45:{t1:2366,t2:0.0852,t3:3154}, 46:{t1:2426,t2:0.0874,t3:3235}, 47:{t1:2488,t2:0.0896,t3:3317},
+      48:{t1:2549,t2:0.0918,t3:3398}, 49:{t1:2610,t2:0.0940,t3:3479}, 50:{t1:2672,t2:0.0962,t3:3563}, 51:{t1:2734,t2:0.0984,t3:3646},
+      52:{t1:2796,t2:0.1007,t3:3728}, 53:{t1:2857,t2:0.1029,t3:3810}, 54:{t1:2919,t2:0.1051,t3:3891}, 55:{t1:2980,t2:0.1073,t3:3973},
+      56:{t1:3041,t2:0.1095,t3:4055}, 57:{t1:3103,t2:0.1117,t3:4138}, 58:{t1:3162,t2:0.1139,t3:4216}, 59:{t1:3220,t2:0.1159,t3:4294},
+      60:{t1:3275,t2:0.1179,t3:4367}, 61:{t1:3329,t2:0.1199,t3:4439}, 62:{t1:3383,t2:0.1218,t3:4510}, 63:{t1:3298,t2:0.1187,t3:4397},
+      64:{t1:3214,t2:0.1157,t3:4285}, 65:{t1:3129,t2:0.1127,t3:4172}, 66:{t1:3044,t2:0.1096,t3:4059}
+    },
+    taux_duree: {
+      20:{t1:1564,t2:0.0563,t3:2085}, 21:{t1:1594,t2:0.0574,t3:2126}, 22:{t1:1625,t2:0.0585,t3:2167}, 23:{t1:1657,t2:0.0596,t3:2209},
+      24:{t1:1731,t2:0.0623,t3:2308}, 25:{t1:1806,t2:0.0650,t3:2408}, 26:{t1:1883,t2:0.0678,t3:2511}, 27:{t1:1961,t2:0.0706,t3:2615},
+      28:{t1:2041,t2:0.0735,t3:2721}, 29:{t1:2122,t2:0.0764,t3:2829}, 30:{t1:2204,t2:0.0793,t3:2938}, 31:{t1:2286,t2:0.0823,t3:3048},
+      32:{t1:2370,t2:0.0853,t3:3160}, 33:{t1:2454,t2:0.0884,t3:3272}, 34:{t1:2539,t2:0.0914,t3:3385}, 35:{t1:2624,t2:0.0945,t3:3499},
+      36:{t1:2709,t2:0.0976,t3:3613}, 37:{t1:2795,t2:0.1006,t3:3727}, 38:{t1:2882,t2:0.1038,t3:3843}, 39:{t1:2971,t2:0.1070,t3:3961},
+      40:{t1:3060,t2:0.1102,t3:4080}, 41:{t1:3150,t2:0.1134,t3:4201}, 42:{t1:3240,t2:0.1167,t3:4320}, 43:{t1:3329,t2:0.1199,t3:4439},
+      44:{t1:3418,t2:0.1230,t3:4557}, 45:{t1:3506,t2:0.1262,t3:4674}, 46:{t1:3596,t2:0.1295,t3:4794}, 47:{t1:3687,t2:0.1327,t3:4915},
+      48:{t1:3777,t2:0.1360,t3:5036}, 49:{t1:3867,t2:0.1392,t3:5156}, 50:{t1:3960,t2:0.1426,t3:5279}, 51:{t1:4052,t2:0.1459,t3:5402},
+      52:{t1:4143,t2:0.1492,t3:5525}, 53:{t1:4234,t2:0.1525,t3:5646}, 54:{t1:4325,t2:0.1557,t3:5767}, 55:{t1:4416,t2:0.1590,t3:5888},
+      56:{t1:4507,t2:0.1623,t3:6009}, 57:{t1:4599,t2:0.1656,t3:6132}, 58:{t1:4686,t2:0.1687,t3:6248}, 59:{t1:4772,t2:0.1718,t3:6363},
+      60:{t1:4854,t2:0.1748,t3:6472}, 61:{t1:4933,t2:0.1776,t3:6578}, 62:{t1:5013,t2:0.1805,t3:6684}, 63:{t1:4888,t2:0.1760,t3:6517},
+      64:{t1:4762,t2:0.1715,t3:6350}, 65:{t1:4637,t2:0.1670,t3:6183}, 66:{t1:4512,t2:0.1624,t3:6015}
+    }
+  };
+
+  function getCoutTrimestreVPLR(age, option, revenuMoyen){
+    const ageClamp = Math.max(20, Math.min(66, Math.round(age)));
+    const ligne = baremeVPLR[option][ageClamp];
+    if(revenuMoyen <= SEUIL_REVENU_BAS) return ligne.t1;
+    if(revenuMoyen <= SEUIL_REVENU_HAUT) return revenuMoyen * ligne.t2;
+    return ligne.t3;
+  }
 
   function trouverBareme(dateNaissance){
     const dnStr = dateNaissance.toISOString().slice(0,10);
@@ -219,9 +352,11 @@
     document.getElementById('trimestresValides').value = '155';
     document.getElementById('dateReleve').value = '2024-12-31';
     document.getElementById('sam').value = '32000';
+    document.getElementById('pointsAgircArrco').value = '5200';
     document.getElementById('salaireActuelBrut').value = '2800';
     document.getElementById('quotiteRP').value = '0.60';
     document.getElementById('dateDepartRP').value = '2026-09-01';
+    document.getElementById('dateDepartDefinitif').value = '2029-09-01';
   }
 
   // ============================================
@@ -308,7 +443,18 @@
 
     const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
     const fractionPension = 1 - quotiteRP;
-    const pensionProgressiveMensuelle = resPension.pensionMensuelle * fractionPension;
+    const pensionBaseProgressiveMensuelle = resPension.pensionMensuelle * fractionPension;
+
+    // Retraite complementaire Agirc-Arrco — attention : coefficient d'anticipation PROPRE (distinct de la decote CNAV),
+    // qui s'applique EN PLUS de la fraction de retraite progressive si le taux plein n'est pas atteint.
+    const pointsAgircArrco = parseFloat(document.getElementById('pointsAgircArrco').value) || 0;
+    const trimManquantsPourArrco = resPension.typeCoef === 'decote' ? Math.min(resPension.trimManquantsDuree, resPension.trimManquantsAge) : 0;
+    const coefAnticipationArrco = getCoefficientAnticipationArrco(trimManquantsPourArrco);
+    const pensionArrcoTheoriqueAnnuelle = pointsAgircArrco * VALEUR_SERVICE_POINT_ARRCO;
+    const pensionArrcoTheoriqueMensuelle = pensionArrcoTheoriqueAnnuelle / 12;
+    const pensionArrcoProgressiveMensuelle = pensionArrcoTheoriqueMensuelle * fractionPension * coefAnticipationArrco;
+
+    const pensionProgressiveMensuelle = pensionBaseProgressiveMensuelle + pensionArrcoProgressiveMensuelle;
     const salaireReduit = salaireActuelBrut * quotiteRP;
     const revenuCombine = salaireReduit + pensionProgressiveMensuelle;
 
@@ -341,40 +487,104 @@
     html += '</tbody></table></div>';
 
     html += '<div class="result-section">';
+    html += '<h3>Pension complémentaire théorique (Agirc-Arrco)</h3>';
+    if(coefAnticipationArrco < 1){
+      html += '<div class="warn"><strong>&#9888;&#65039; Coefficient d\'anticipation Agirc-Arrco :</strong> ' + trimManquantsPourArrco + ' trimestre(s) manquant(s) &rarr; coefficient de <strong>' + coefAnticipationArrco.toFixed(4) + '</strong> (minoration <strong>' + ((1-coefAnticipationArrco)*100).toFixed(2) + '%</strong>). <u>Ce coefficient est propre à l\'Agirc-Arrco et distinct de la décote CNAV</u> — il s\'applique en plus de la fraction de retraite progressive, sur la part complémentaire uniquement.</div>';
+    } else {
+      html += '<div class="info"><strong>Aucune minoration Agirc-Arrco</strong> — taux plein déjà atteint.</div>';
+    }
+    html += '<table><tbody>';
+    html += '<tr><td>Points Agirc-Arrco accumulés</td><td style="text-align:right;">' + pointsAgircArrco.toLocaleString('fr-FR') + '</td></tr>';
+    html += '<tr><td>Valeur du point (2026)</td><td style="text-align:right;">' + VALEUR_SERVICE_POINT_ARRCO + ' €</td></tr>';
+    html += '<tr style="font-weight:600;"><td>Pension complémentaire mensuelle théorique (avant minoration)</td><td style="text-align:right;">' + formatEuro(pensionArrcoTheoriqueMensuelle) + '</td></tr>';
+    html += '</tbody></table></div>';
+
+    html += '<div class="result-section">';
     html += '<h3>Vos revenus pendant la retraite progressive</h3>';
-    html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;">';
+    html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">';
     html += '<div style="background:#f8fafc;border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--gris-txt);margin:0 0 4px;">Salaire réduit (' + (quotiteRP*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;">' + formatEuro(salaireReduit) + '</p></div>';
-    html += '<div style="background:var(--bleu-clair);border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--bleu);margin:0 0 4px;">Fraction de pension (' + (fractionPension*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;color:var(--bleu);">' + formatEuro(pensionProgressiveMensuelle) + '</p></div>';
+    html += '<div style="background:var(--bleu-clair);border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--bleu);margin:0 0 4px;">Fraction pension base (' + (fractionPension*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;color:var(--bleu);">' + formatEuro(pensionBaseProgressiveMensuelle) + '</p></div>';
     html += '</div>';
+    html += '<div style="background:#f5f3ff;border-radius:8px;padding:14px;margin-bottom:12px;"><p style="font-size:12px;color:#6d28d9;margin:0 0 4px;">Fraction pension complémentaire (' + (fractionPension*100).toFixed(0) + '%' + (coefAnticipationArrco<1?' &times; coef. '+coefAnticipationArrco.toFixed(3):'') + ')</p><p style="font-size:20px;font-weight:600;margin:0;color:#6d28d9;">' + formatEuro(pensionArrcoProgressiveMensuelle) + '</p></div>';
     html += '<div style="background:var(--vert);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">';
-    html += '<div><p style="font-size:12px;color:#dcfce7;margin:0 0 2px;font-weight:500;">Revenu total mensuel pendant la RP</p><p style="font-size:11px;color:#bbf7d0;margin:0;">Salaire + fraction de pension de base &mdash; hors Agirc-Arrco</p></div>';
+    html += '<div><p style="font-size:12px;color:#dcfce7;margin:0 0 2px;font-weight:500;">Revenu total mensuel pendant la RP</p><p style="font-size:11px;color:#bbf7d0;margin:0;">Salaire + fraction pension base + fraction pension complémentaire</p></div>';
     html += '<span style="font-size:26px;font-weight:600;color:#fff;">' + formatEuro(revenuCombine) + '</span></div></div>';
 
     if(nbTrimValidablesParAn < 4){
       html += '<div class="warn"><strong>&#9888;&#65039; Attention aux trimestres :</strong> avec un salaire réduit de ' + formatEuro(salaireReduit) + '/mois (' + formatEuro(salaireAnnuelReduit) + '/an), vous ne validerez que <strong>' + nbTrimValidablesParAn + ' trimestre(s) sur 4</strong> par an (seuil 2026 : ' + formatEuro(SEUIL_TRIMESTRE_SMIC) + '/trimestre). Cela peut retarder votre passage au taux plein. Options : choisir une quotité plus élevée, ou envisager la surcotisation.</div>';
     }
 
-    html += '<div class="warn"><strong>Important :</strong> ce montant ne comprend pas la retraite complémentaire Agirc-Arrco, qui applique la même fraction et représente généralement 30 à 40% de la pension totale &mdash; le revenu réel pendant la RP sera donc supérieur à ce qui est affiché ici. Version à venir.</div>';
+    // ============================================
+    // PROJECTION A LA RETRAITE DEFINITIVE (fin de la RP)
+    // ============================================
+    const ddefVal = document.getElementById('dateDepartDefinitif').value;
+    if(ddefVal){
+      const dateDepartDefinitif = new Date(ddefVal);
+      const dureeRPAnnees = Math.max(0, moisEntre(dateDepartRP, dateDepartDefinitif)/12);
+
+      // Trimestres supplementaires accumules PENDANT la RP (limites par le seuil de validation, cf. alerte ci-dessus)
+      const trimestresSupplementairesRP = Math.round(nbTrimValidablesParAn * dureeRPAnnees);
+      const trimestresValidesDefinitif = trimestresValidesRP + trimestresSupplementairesRP;
+
+      // Points Agirc-Arrco supplementaires accumules PENDANT la RP (sur la base du salaire reduit, tranche 1, taux contractuel 6.20%)
+      const PRIX_ACHAT_POINT_ARRCO = 20.1877;
+      const TAUX_CONTRACTUEL_T1 = 0.0620;
+      const pointsAnnuelsRP = Math.min(salaireAnnuelReduit, PASS_2026) * TAUX_CONTRACTUEL_T1 / PRIX_ACHAT_POINT_ARRCO;
+      const pointsSupplementairesRP = Math.round(pointsAnnuelsRP * dureeRPAnnees);
+      const pointsAgircArrcoDefinitif = pointsAgircArrco + pointsSupplementairesRP;
+
+      const resPensionDefinitive = calculerPensionBase(dateNaissance, dateDepartDefinitif, trimestresValidesDefinitif, sam);
+      const trimManquantsDefinitifArrco = resPensionDefinitive.typeCoef === 'decote' ? Math.min(resPensionDefinitive.trimManquantsDuree, resPensionDefinitive.trimManquantsAge) : 0;
+      const coefAnticipationArrcoDefinitif = getCoefficientAnticipationArrco(trimManquantsDefinitifArrco);
+      const pensionArrcoDefinitiveMensuelle = (pointsAgircArrcoDefinitif * VALEUR_SERVICE_POINT_ARRCO / 12) * coefAnticipationArrcoDefinitif;
+      const pensionTotaleDefinitive = resPensionDefinitive.pensionMensuelle + pensionArrcoDefinitiveMensuelle;
+
+      html += '<div class="result-section">';
+      html += '<h3>Pension à la retraite définitive (' + formatDate(dateDepartDefinitif) + ')</h3>';
+      html += '<p style="font-size:.82rem;color:var(--gris-txt);">Projection après ' + dureeRPAnnees.toFixed(1) + ' an(s) de retraite progressive à ' + (quotiteRP*100).toFixed(0) + '%, avec les trimestres et points accumulés pendant cette période.</p>';
+      html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:10px;">';
+      html += '<div style="display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:4px;"><span>Trimestres à la retraite définitive</span><strong>' + trimestresValidesDefinitif + ' / ' + resPensionDefinitive.TR + '</strong></div>';
+      html += '<div style="display:flex;justify-content:space-between;font-size:.88rem;"><span>Points Agirc-Arrco à la retraite définitive</span><strong>' + pointsAgircArrcoDefinitif.toLocaleString('fr-FR') + '</strong></div>';
+      html += '</div>';
+      if(resPensionDefinitive.typeCoef === 'decote'){
+        html += '<div class="warn">Décote encore présente : taux de ' + resPensionDefinitive.taux.toFixed(3) + '% (au lieu de 50%). ' + trimManquantsDefinitifArrco + ' trimestre(s) manquant(s) &rarr; coefficient Agirc-Arrco de ' + coefAnticipationArrcoDefinitif.toFixed(3) + '.</div>';
+      } else if(resPensionDefinitive.typeCoef === 'surcote'){
+        html += '<div class="info">Surcote acquise : pension de base majorée de ' + resPensionDefinitive.majSurcote.toFixed(2) + '%.</div>';
+      } else {
+        html += '<div class="info">Taux plein atteint (50%), aucune minoration Agirc-Arrco.</div>';
+      }
+      html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0;">';
+      html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:11px;color:var(--gris-txt);margin:0 0 4px;">Pension de base</p><p style="font-size:18px;font-weight:600;margin:0;">' + formatEuro(resPensionDefinitive.pensionMensuelle) + '</p></div>';
+      html += '<div style="background:#f5f3ff;border-radius:8px;padding:12px;"><p style="font-size:11px;color:#6d28d9;margin:0 0 4px;">Pension complémentaire</p><p style="font-size:18px;font-weight:600;margin:0;color:#6d28d9;">' + formatEuro(pensionArrcoDefinitiveMensuelle) + '</p></div>';
+      html += '</div>';
+      html += '<div style="background:#1e40af;border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">';
+      html += '<div><p style="font-size:12px;color:#bfdbfe;margin:0 0 2px;font-weight:500;">Pension totale mensuelle à la retraite définitive</p><p style="font-size:11px;color:#93c5fd;margin:0;">Base + complémentaire, brut avant impôt</p></div>';
+      html += '<span style="font-size:26px;font-weight:600;color:#fff;">' + formatEuro(pensionTotaleDefinitive) + '</span></div>';
+      html += '</div>';
+    }
 
     document.getElementById('resultat').innerHTML = html;
 
-    afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteRP);
+    afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteRP, pointsAgircArrco, coefAnticipationArrco);
     switchTab('resultats');
   }
 
-  function afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteActuelle){
+  function afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteActuelle, pointsAgircArrco, coefAnticipationArrco){
     const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
+    const pensionArrcoTheoriqueMensuelle = (pointsAgircArrco * VALEUR_SERVICE_POINT_ARRCO) / 12;
     const quotites = [0.40, 0.50, 0.60, 0.70, 0.80];
     const lignes = quotites.map(q=>{
       const fraction = 1-q;
-      const pensionPart = resPension.pensionMensuelle * fraction;
+      const pensionBasePart = resPension.pensionMensuelle * fraction;
+      const pensionArrcoPart = pensionArrcoTheoriqueMensuelle * fraction * coefAnticipationArrco;
+      const pensionPart = pensionBasePart + pensionArrcoPart;
       const salairePart = salaireActuelBrut * q;
       return { q, salairePart, pensionPart, total: salairePart+pensionPart, ok: Math.abs(q-quotiteActuelle)<0.001 };
     });
     const maxTotal = Math.max(...lignes.map(l=>l.total));
 
     let html = '<div class="result-section"><h3>Comparaison du revenu total selon la quotité choisie</h3>';
-    html += '<p style="font-size:.82rem;color:var(--gris-txt);margin-bottom:10px;">Salaire réduit + fraction de pension de base, pour un départ en RP le ' + formatDate(dateDepartRP) + '.</p>';
+    html += '<p style="font-size:.82rem;color:var(--gris-txt);margin-bottom:10px;">Salaire réduit + fraction de pension (base + complémentaire), pour un départ en RP le ' + formatDate(dateDepartRP) + '.</p>';
     html += '<table><thead><tr><th>Quotité</th><th style="text-align:right;">Salaire réduit</th><th style="text-align:right;">Fraction pension</th><th style="text-align:right;">Total mensuel</th><th>Répartition</th></tr></thead><tbody>';
     lignes.forEach(l=>{
       html += '<tr style="background:'+(l.ok?'#eff6ff':'#fff')+';">';
@@ -389,6 +599,102 @@
     html += '<p style="font-size:.78rem;color:var(--gris-txt);margin-top:8px;">Rappel : la quotité doit rester entre 40% et 80%. En-dessous de 40% ou au-dessus de 80%, la retraite progressive n\'est pas accessible.</p>';
     html += '</div>';
     document.getElementById('comparateur').innerHTML = html;
+  }
+
+  function analyserRachat(){
+    const dnVal = document.getElementById('dateNaissance').value;
+    if(!dnVal){
+      document.getElementById('resultat-rachat').innerHTML = '<div class="warn">Merci de renseigner votre date de naissance dans l\'onglet Paramètres.</div>';
+      return;
+    }
+    const dateNaissance = new Date(dnVal);
+    const sam = parseFloat(document.getElementById('sam').value) || 0;
+    const bareme = trouverBareme(dateNaissance);
+    const TR = bareme.trimestresRequis;
+
+    const nbTrimestres = parseInt(document.getElementById('rachat-nbTrimestres').value) || 0;
+    const ageRachat = parseInt(document.getElementById('rachat-ageRachat').value) || 20;
+    const option = document.getElementById('rachat-option').value;
+    const revenuMoyen = parseFloat(document.getElementById('rachat-revenuMoyen').value) || 0;
+    const TMI = parseFloat(document.getElementById('rachat-TMI').value) / 100;
+    const trimManquantsAvant = parseInt(document.getElementById('rachat-trimManquants').value) || 0;
+
+    const coutParTrimestre = getCoutTrimestreVPLR(ageRachat, option, revenuMoyen);
+    const coutNominal = coutParTrimestre * nbTrimestres;
+    const economieImpot = coutNominal * TMI;
+    const coutReel = coutNominal - economieImpot;
+
+    // Gain : Option "taux seul" -> reduit uniquement la decote (jusqu'a l'annuler), sans toucher au ratio trimestres/TR.
+    // Option "taux et duree" -> ajoute aussi au ratio trimestres/TR (comme des trimestres reellement cotises).
+    const samMensuel = sam / 12;
+    let gainMensuel = 0, trimUtilesDecote = 0;
+    if(option === 'taux_seul'){
+      trimUtilesDecote = Math.min(nbTrimestres, trimManquantsAvant);
+      gainMensuel = samMensuel * (trimUtilesDecote * 0.625 / 100);
+    } else {
+      gainMensuel = samMensuel * 0.50 * (nbTrimestres / TR);
+    }
+    const gainAnnuel = gainMensuel * 12;
+    const dureeRecuperation = gainAnnuel > 0 ? coutReel / gainAnnuel : Infinity;
+
+    // Duree de capitalisation pour la comparaison placement : de l'age du rachat a l'age legal de la generation
+    const dureeCapitalisation = Math.max(1, bareme.ageLegalAns + bareme.ageLegalMois/12 - ageRachat);
+    const tauxLivretA = parseFloat(document.getElementById('rachat-tauxLivretA').value)/100 || 0;
+    const tauxPEA = parseFloat(document.getElementById('rachat-tauxPEA').value)/100 || 0;
+
+    let html = '<div class="result-section">';
+    html += '<h3>Coût du rachat</h3>';
+    html += '<table><tbody>';
+    html += '<tr><td>Coût par trimestre (tranche ' + (revenuMoyen<=SEUIL_REVENU_BAS?'basse, &lt;36 045 €':revenuMoyen<=SEUIL_REVENU_HAUT?'intermédiaire, 36 045-48 060 €':'haute, &gt;48 060 €') + ')</td><td style="text-align:right;">' + formatEuro(coutParTrimestre) + '</td></tr>';
+    html += '<tr><td>Coût nominal (&times; ' + nbTrimestres + ')</td><td style="text-align:right;">' + formatEuro(coutNominal) + '</td></tr>';
+    html += '<tr><td>Économie d\'impôt (TMI ' + (TMI*100).toFixed(0) + '%)</td><td style="text-align:right;">-' + formatEuro(economieImpot) + '</td></tr>';
+    html += '<tr style="font-weight:600;"><td>Coût réel après impôt</td><td style="text-align:right;color:var(--bleu);">' + formatEuro(coutReel) + '</td></tr>';
+    html += '</tbody></table></div>';
+
+    html += '<div class="result-section">';
+    html += '<h3>Gain de pension</h3>';
+    if(option === 'taux_seul'){
+      if(trimUtilesDecote < nbTrimestres){
+        html += '<div class="warn">Vous rachetez ' + nbTrimestres + ' trimestre(s), mais vous n\'en avez que ' + trimManquantsAvant + ' de manquants — seuls ' + trimUtilesDecote + ' trimestre(s) sont utiles pour réduire la décote. Le reste serait sans effet en option "Taux seul".</div>';
+      }
+      html += '<p style="font-size:.86rem;">Réduction de la décote : ' + trimUtilesDecote + ' &times; 0,625 point = ' + (trimUtilesDecote*0.625).toFixed(3) + ' point(s) de taux en plus.</p>';
+    } else {
+      html += '<p style="font-size:.86rem;">Trimestres ajoutés au ratio de proratisation : +' + nbTrimestres + ' / ' + TR + '.</p>';
+    }
+    html += '<table><tbody>';
+    html += '<tr style="font-weight:600;"><td>Supplément de pension mensuel (à vie)</td><td style="text-align:right;color:var(--vert);">+' + formatEuro(gainMensuel) + '</td></tr>';
+    html += '<tr><td>Supplément annuel</td><td style="text-align:right;">+' + formatEuro(gainAnnuel) + '</td></tr>';
+    html += '<tr><td>Durée pour récupérer le coût</td><td style="text-align:right;">' + (dureeRecuperation===Infinity?'Jamais récupéré':dureeRecuperation.toFixed(1)+' ans') + '</td></tr>';
+    html += '</tbody></table></div>';
+
+    html += '<div class="result-section">';
+    html += '<h3>Comparaison avec un placement</h3>';
+    html += '<p style="font-size:.82rem;color:var(--gris-txt);">Si vous placiez ' + formatEuro(coutReel) + ' pendant ' + dureeCapitalisation.toFixed(1) + ' an(s) (jusqu\'à l\'âge légal, ' + bareme.ageLegalAns + ' ans' + (bareme.ageLegalMois>0?' '+bareme.ageLegalMois+' mois':'') + ') au lieu de racheter :</p>';
+    const scenariosPlacement = [
+      { taux: tauxLivretA, label: 'Livret A', detail: (tauxLivretA*100).toFixed(1)+'% net, garanti', couleur: '#3b82f6' },
+      { taux: tauxPEA, label: 'PEA (moyenne réelle)', detail: (tauxPEA*100).toFixed(1)+'% moyen, non garanti', couleur: '#f59e0b' }
+    ].map(s=>{
+      const capitalFinal = coutReel * Math.pow(1+s.taux, dureeCapitalisation);
+      const gainTotal = capitalFinal - coutReel;
+      const revenuMensuelEquivalent = (capitalFinal * s.taux) / 12;
+      return {...s, capitalFinal, gainTotal, revenuMensuelEquivalent};
+    });
+    html += '<table><thead><tr><th>Placement</th><th style="text-align:right;">Capital final</th><th style="text-align:right;">Gain total</th><th style="text-align:right;">Revenu mensuel équivalent</th></tr></thead><tbody>';
+    scenariosPlacement.forEach(s=>{
+      html += '<tr><td><strong style="color:'+s.couleur+';">'+s.label+'</strong><br><small style="color:var(--gris-txt);">'+s.detail+'</small></td>';
+      html += '<td style="text-align:right;">'+formatEuro(s.capitalFinal)+'</td>';
+      html += '<td style="text-align:right;">'+formatEuro(s.gainTotal)+'</td>';
+      html += '<td style="text-align:right;font-weight:600;">'+formatEuro(s.revenuMensuelEquivalent)+'/mois</td></tr>';
+    });
+    html += '<tr style="background:#eff6ff;"><td style="font-weight:600;">Rachat de trimestres</td><td style="text-align:right;color:var(--gris-txt);">&mdash;</td><td style="text-align:right;color:var(--gris-txt);">&mdash;</td><td style="text-align:right;font-weight:600;color:var(--vert);">+'+formatEuro(gainMensuel)+'/mois à vie</td></tr>';
+    html += '</tbody></table>';
+    html += '<p style="font-size:.78rem;color:var(--gris-txt);margin-top:6px;">Le placement conserve le capital (disponible, transmissible) ; le rachat ne conserve rien mais verse à vie, y compris au-delà de l\'espérance de vie moyenne.</p>';
+    html += '</div>';
+
+    html += '<div class="info"><strong>À vous de décider :</strong> le rachat génère un supplément de pension <em>à vie</em>, mais le capital investi est définitivement perdu (non transmissible, non récupérable). Comparez avec un placement (Livret A, assurance-vie, PER) sur la même durée avant de vous engager.</div>';
+    html += '<div class="warn">Coefficients indicatifs (barème 2013, reconduit sans changement jusqu\'en 2026). Pour un devis garanti, contactez votre caisse de retraite (formulaire de demande d\'évaluation).</div>';
+
+    document.getElementById('resultat-rachat').innerHTML = html;
   }
 </script>
 </body>
