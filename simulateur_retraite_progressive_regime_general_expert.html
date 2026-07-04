@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur Retraite Progressive - Régime Général - V01 - Salarié du privé</title>
+<style>
+  :root{
+    --bleu:#1e40af; --bleu-clair:#eff6ff; --vert:#15803d; --vert-clair:#f0fdf4;
+    --or:#b45309; --or-clair:#fff7ed; --rouge:#dc2626; --rouge-clair:#fee2e2;
+    --gris-txt:#6b7280; --gris-bord:#e5e7eb; --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;max-width:1200px;margin:0 auto;padding:20px;background:#f8fafc;color:#0f172a;}
+  h1{text-align:center;font-size:1.6rem;margin-bottom:4px;}
+  h2{font-size:1rem;font-weight:normal;text-align:center;color:var(--or);margin-top:0;}
+  h3{color:var(--bleu);font-size:1rem;border-bottom:1px solid var(--gris-bord);padding-bottom:6px;margin-top:0;}
+  h4{margin:10px 0 6px;font-size:.92rem;}
+  label{display:block;margin-top:12px;margin-bottom:4px;font-weight:500;font-size:.88rem;}
+  input,select{width:100%;padding:8px 10px;border:1px solid var(--gris-bord);border-radius:6px;font-size:.92rem;}
+  small{display:block;color:var(--gris-txt);font-size:.76rem;margin-top:2px;}
+  .row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;}
+  .col{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--radius);padding:16px;}
+  .banniere{margin:12px auto 20px;max-width:900px;padding:12px 16px;background:#f8fafc;border:1px solid var(--gris-bord);border-radius:6px;font-size:.82rem;color:#475569;text-align:center;}
+  .disclaimer-top{margin:16px 0;padding:12px;background:var(--or-clair);border-left:4px solid var(--or);border-radius:6px;text-align:center;font-size:.86rem;}
+  .btn{padding:10px 18px;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.9rem;}
+  .primary{background:var(--bleu);color:#fff;}
+  .primary:hover{background:#1e3a8a;}
+  .secondary{background:#e5e7eb;color:#0f172a;}
+  .secondary:hover{background:#d1d5db;}
+  .actions{text-align:center;margin:24px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .result-section{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--radius);padding:18px;margin-bottom:14px;}
+  .warn{background:#fff7ed;border-left:3px solid #f59e0b;padding:10px 14px;border-radius:6px;font-size:.86rem;margin-bottom:14px;}
+  .info{background:var(--bleu-clair);border-left:3px solid var(--bleu);padding:10px 14px;border-radius:6px;font-size:.86rem;margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  th,td{padding:8px;border:1px solid var(--gris-bord);text-align:left;}
+  th{background:var(--bleu);color:#fff;}
+  footer{text-align:center;font-size:.78rem;color:var(--gris-txt);margin-top:30px;border-top:1px solid var(--gris-bord);padding-top:14px;}
+  .tabs-nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--gris-bord);margin-bottom:20px;}
+  .tab-button{padding:10px 16px;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--gris-txt);border-bottom:3px solid transparent;}
+  .tab-button.active{color:var(--bleu);border-bottom-color:var(--bleu);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  @media (max-width:900px){.row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+  <h1>Simulateur de Retraite Progressive &ndash; Régime Général</h1>
+  <h2>Salarié du privé &ndash; CNAV (base) &ndash; Aide à la décision</h2>
+
+  <div class="banniere">
+    Ce simulateur concerne les <strong>salariés du régime général</strong> (secteur privé, hors régimes spéciaux). Il ne couvre <strong>pas</strong> les fonctionnaires, les professions libérales (CNAVPL), ni les indépendants (SSI). La retraite <strong>complémentaire Agirc-Arrco</strong> n'est <strong>pas encore incluse</strong> dans les montants chiffrés &mdash; voir avertissement dans les résultats.
+  </div>
+
+  <div class="disclaimer-top">
+    &#9888;&#65039; <strong>Outil éducatif NON OFFICIEL.</strong> Pour votre estimation officielle, consultez <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> (simulateur M@rel).
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-button active" onclick="switchTab('parametres')">Paramètres</button>
+    <button class="tab-button" onclick="switchTab('resultats')">Retraite Progressive</button>
+    <button class="tab-button" onclick="switchTab('comparateur')">Comparateur quotités</button>
+    <button class="tab-button" onclick="switchTab('sources')">Sources</button>
+  </div>
+
+  <div id="tab-parametres" class="tab-content active">
+    <div class="row">
+      <div class="col">
+        <h3>Identité</h3>
+        <label for="dateNaissance">Date de naissance</label>
+        <input id="dateNaissance" type="date" />
+        <small>Détermine votre génération : âge légal, trimestres requis, âge du taux plein automatique.</small>
+
+        <label for="sexe">Sexe</label>
+        <select id="sexe">
+          <option value="H">Homme</option>
+          <option value="F">Femme</option>
+        </select>
+      </div>
+
+      <div class="col">
+        <h3>Carrière au relevé</h3>
+        <label for="trimestresValides">Trimestres validés (relevé de carrière)</label>
+        <input id="trimestresValides" type="number" min="0" max="220" step="1" value="0" />
+        <small>Tous régimes alignés confondus (privé, agricole, indépendants SSI).</small>
+
+        <label for="dateReleve">Date du relevé</label>
+        <input id="dateReleve" type="date" />
+
+        <label for="sam">Salaire annuel moyen estimé (SAM)</label>
+        <input id="sam" type="number" min="0" step="100" value="30000" />
+        <small>Moyenne de vos 25 meilleures années de salaire <strong>brut</strong> (primes et heures sup incluses, hors remboursements de frais), chaque année <strong>plafonnée au PASS</strong> de cette année-là (48 060 € en 2026). Attention : ce n'est pas votre dernier salaire — une carrière en forte progression donne un SAM inférieur au dernier salaire perçu.</small>
+        <small style="margin-top:6px;">&#8505;&#65039; Le salaire au-delà du PASS ne compte pas ici, mais génère des points Agirc-Arrco (tranche 2) — pris en compte dans une prochaine version.</small>
+      </div>
+
+      <div class="col">
+        <h3>Projet de retraite progressive</h3>
+        <label for="salaireActuelBrut">Salaire brut mensuel actuel (temps plein)</label>
+        <input id="salaireActuelBrut" type="number" min="0" step="50" value="2800" />
+        <small>Sert à calculer votre salaire réduit pendant la RP.</small>
+
+        <label for="quotiteRP">Quotité de travail pendant la RP</label>
+        <select id="quotiteRP">
+          <option value="0.80">80 %</option>
+          <option value="0.70">70 %</option>
+          <option value="0.60" selected>60 %</option>
+          <option value="0.50">50 %</option>
+          <option value="0.40">40 %</option>
+        </select>
+        <small>Doit être comprise entre 40% et 80% d'un temps complet.</small>
+
+        <label for="dateDepartRP">Date de départ en retraite progressive envisagée</label>
+        <input id="dateDepartRP" type="date" />
+        <small>Minimum 60 ans + 150 trimestres tous régimes.</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="calculer()">Calculer ma retraite progressive</button>
+      <button class="btn secondary" onclick="chargerDefaut()">Exemple de valeurs</button>
+    </div>
+  </div>
+
+  <div id="tab-resultats" class="tab-content">
+    <div id="resultat"><div class="info">Renseignez l'onglet Paramètres puis cliquez sur "Calculer ma retraite progressive".</div></div>
+  </div>
+
+  <div id="tab-comparateur" class="tab-content">
+    <div id="comparateur"><div class="info">Lancez d'abord un calcul dans l'onglet Paramètres.</div></div>
+  </div>
+
+  <div id="tab-sources" class="tab-content">
+    <div class="result-section">
+      <h3>Sources &amp; références réglementaires</h3>
+      <table>
+        <thead><tr><th>Texte</th><th>Objet</th></tr></thead>
+        <tbody>
+          <tr><td>Code de la sécurité sociale &ndash; Art. L351-1, L161-17-2, L161-17-3, L351-8</td><td>Calcul de la pension de base, âge légal, durée d'assurance, âge du taux plein automatique</td></tr>
+          <tr><td>Art. L161-22-1-5 à L161-22-1-9 CSS</td><td>Retraite progressive &ndash; section unifiée par la réforme du 14/04/2023 (loi n°2023-270)</td></tr>
+          <tr><td>Décret n°2025-681 du 15/07/2025</td><td>Abaissement de l'âge minimum de la retraite progressive à 60 ans pour toutes générations</td></tr>
+          <tr><td>Loi n°2025-1403 du 30/12/2025 (LFSS 2026), art. 105</td><td>Suspension partielle de la réforme 2023 &ndash; décalage de l'âge légal et de la durée d'assurance pour les générations 1964-1968</td></tr>
+          <tr><td>Circulaire Cnav 2026-07 du 05/03/2026</td><td>Barème détaillé âge légal / trimestres requis / âge du taux plein par génération</td></tr>
+          <tr><td>Art. R351-27 CSS</td><td>Coefficient de minoration (décote) &ndash; 1,25% du taux plein par trimestre manquant</td></tr>
+          <tr><td>Art. L351-1-2 et D351-1-4 CSS</td><td>Surcote &ndash; majoration pour trimestres cotisés au-delà de la durée requise</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.82rem;color:var(--gris-txt);margin-top:10px;">Site officiel : <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> (simulateur M@rel, inter-régimes) &middot; <a href="https://www.lassuranceretraite.fr" target="_blank">lassuranceretraite.fr</a></p>
+    </div>
+  </div>
+
+<footer>
+  <p><strong>Simulateur Retraite Progressive &ndash; Régime Général &ndash; V01</strong> &mdash; Outil gratuit et pédagogique NON OFFICIEL &mdash; Développé bénévolement par J34NMY avec l'assistance de Claude (Anthropic)</p>
+  <p>Aucune donnée saisie n'est transmise &mdash; calculs effectués localement dans votre navigateur.</p>
+  <p>Pour votre estimation officielle : <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a></p>
+</footer>
+
+<script>
+  function switchTab(tabName){
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+tabName).classList.add('active');
+    document.querySelector('[onclick="switchTab(\''+tabName+'\')"]').classList.add('active');
+  }
+
+  // ============================================
+  // BAREME OFFICIEL PAR GENERATION
+  // Source : Circulaire Cnav 2026-07 du 05/03/2026, Annexe 1 (retraites a effet du 01/09/2026)
+  // ============================================
+  const baremeGenerations = [
+    { debut:'1953-01-01', fin:'1953-12-31', ageLegalAns:61, ageLegalMois:2,  trimestresRequis:165, ageTauxPlein:66.17 },
+    { debut:'1954-01-01', fin:'1954-12-31', ageLegalAns:61, ageLegalMois:7,  trimestresRequis:165, ageTauxPlein:66.58 },
+    { debut:'1955-01-01', fin:'1957-12-31', ageLegalAns:62, ageLegalMois:0,  trimestresRequis:166, ageTauxPlein:67 },
+    { debut:'1958-01-01', fin:'1960-12-31', ageLegalAns:62, ageLegalMois:0,  trimestresRequis:167, ageTauxPlein:67 },
+    { debut:'1961-01-01', fin:'1961-08-31', ageLegalAns:62, ageLegalMois:0,  trimestresRequis:168, ageTauxPlein:67 },
+    { debut:'1961-09-01', fin:'1961-12-31', ageLegalAns:62, ageLegalMois:3,  trimestresRequis:169, ageTauxPlein:67 },
+    { debut:'1962-01-01', fin:'1962-12-31', ageLegalAns:62, ageLegalMois:6,  trimestresRequis:169, ageTauxPlein:67 },
+    { debut:'1963-01-01', fin:'1963-12-31', ageLegalAns:62, ageLegalMois:9,  trimestresRequis:170, ageTauxPlein:67 },
+    { debut:'1964-01-01', fin:'1964-12-31', ageLegalAns:62, ageLegalMois:9,  trimestresRequis:170, ageTauxPlein:67 },
+    { debut:'1965-01-01', fin:'1965-03-31', ageLegalAns:62, ageLegalMois:9,  trimestresRequis:170, ageTauxPlein:67 },
+    { debut:'1965-04-01', fin:'1965-12-31', ageLegalAns:63, ageLegalMois:0,  trimestresRequis:171, ageTauxPlein:67 },
+    { debut:'1966-01-01', fin:'1966-12-31', ageLegalAns:63, ageLegalMois:3,  trimestresRequis:172, ageTauxPlein:67 },
+    { debut:'1967-01-01', fin:'1967-12-31', ageLegalAns:63, ageLegalMois:6,  trimestresRequis:172, ageTauxPlein:67 },
+    { debut:'1968-01-01', fin:'1968-12-31', ageLegalAns:63, ageLegalMois:9,  trimestresRequis:172, ageTauxPlein:67 },
+    { debut:'1969-01-01', fin:'2100-12-31', ageLegalAns:64, ageLegalMois:0,  trimestresRequis:172, ageTauxPlein:67 }
+  ];
+
+  // Age minimum retraite progressive : 60 ans (Decret n°2025-681 du 15/07/2025), toutes generations
+  const AGE_MIN_RP_ANS = 60;
+  const TRIMESTRES_MIN_RP = 150;
+  const SEUIL_TRIMESTRE_SMIC = 1803; // seuil de salaire trimestriel 2026 pour valider 1 trimestre (150x SMIC horaire)
+
+  function trouverBareme(dateNaissance){
+    const dnStr = dateNaissance.toISOString().slice(0,10);
+    for(const b of baremeGenerations){
+      if(dnStr >= b.debut && dnStr <= b.fin) return b;
+    }
+    return { ageLegalAns:60, ageLegalMois:0, trimestresRequis:160, ageTauxPlein:65 };
+  }
+
+  function ajouterMois(date, mois){
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + mois);
+    return d;
+  }
+  function moisEntre(d1, d2){
+    return (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth()) - (d2.getDate()<d1.getDate()?1:0);
+  }
+  function formatEuro(v){
+    return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v||0);
+  }
+  function formatDate(d){
+    return d instanceof Date && !isNaN(d) ? d.toLocaleDateString('fr-FR') : '-';
+  }
+
+  function chargerDefaut(){
+    document.getElementById('dateNaissance').value = '1964-06-25';
+    document.getElementById('sexe').value = 'H';
+    document.getElementById('trimestresValides').value = '155';
+    document.getElementById('dateReleve').value = '2024-12-31';
+    document.getElementById('sam').value = '32000';
+    document.getElementById('salaireActuelBrut').value = '2800';
+    document.getElementById('quotiteRP').value = '0.60';
+    document.getElementById('dateDepartRP').value = '2026-09-01';
+  }
+
+  // ============================================
+  // CALCUL DE LA PENSION THEORIQUE DE BASE (CNAV) A UNE DATE DONNEE
+  // Reutilise pour : pension theorique a la date de RP, et projection retraite definitive
+  // ============================================
+  function calculerPensionBase(dateNaissance, dateCalcul, trimestresValidesADateCalcul, sam){
+    const bareme = trouverBareme(dateNaissance);
+    const TR = bareme.trimestresRequis;
+    const dateAgeLegal = ajouterMois(dateNaissance, bareme.ageLegalAns*12 + bareme.ageLegalMois);
+    const dateTauxPlein = new Date(dateNaissance);
+    dateTauxPlein.setFullYear(dateTauxPlein.getFullYear() + Math.floor(bareme.ageTauxPlein));
+    if(bareme.ageTauxPlein % 1 !== 0){
+      dateTauxPlein.setMonth(dateTauxPlein.getMonth() + Math.round((bareme.ageTauxPlein%1)*12));
+    }
+    const eligible = dateCalcul >= dateAgeLegal;
+    const tauxPleinAuto = dateCalcul >= dateTauxPlein;
+    const trimManquantsPourTauxPlein = Math.max(0, TR - trimestresValidesADateCalcul);
+
+    let taux, typeCoef, trimManquantsDuree=0, trimManquantsAge=0, trimSurcote=0, majSurcote=0, coefSurcoteMontant=1;
+
+    if(tauxPleinAuto || trimManquantsPourTauxPlein === 0){
+      taux = 50; typeCoef = 'plein';
+      if(trimestresValidesADateCalcul > TR && dateCalcul > dateAgeLegal){
+        trimSurcote = trimestresValidesADateCalcul - TR;
+        majSurcote = trimSurcote * 1.25;
+        coefSurcoteMontant = 1 + majSurcote/100;
+        typeCoef = 'surcote';
+      }
+    } else {
+      trimManquantsDuree = trimManquantsPourTauxPlein;
+      trimManquantsAge = Math.max(0, Math.ceil(moisEntre(dateCalcul, dateTauxPlein)/3));
+      const trimRetenu = Math.min(trimManquantsDuree, trimManquantsAge);
+      taux = Math.max(50 - trimRetenu*0.625, 0);
+      typeCoef = 'decote';
+    }
+
+    const ratioProrata = Math.min(1, trimestresValidesADateCalcul / TR);
+    const pensionAnnuelle = sam * (taux/100) * ratioProrata * coefSurcoteMontant;
+
+    return {
+      bareme, TR, dateAgeLegal, dateTauxPlein, eligible, taux, typeCoef,
+      trimManquantsDuree, trimManquantsAge, trimSurcote, majSurcote,
+      ratioProrata, pensionAnnuelle, pensionMensuelle: pensionAnnuelle/12
+    };
+  }
+
+  function calculer(){
+    const dnVal = document.getElementById('dateNaissance').value;
+    const drpVal = document.getElementById('dateDepartRP').value;
+    const drVal = document.getElementById('dateReleve').value;
+    if(!dnVal || !drpVal || !drVal){
+      document.getElementById('resultat').innerHTML = '<div class="warn"><strong>Merci de renseigner la date de naissance, la date du relevé et la date de départ en retraite progressive.</strong></div>';
+      switchTab('resultats');
+      return;
+    }
+    const dateNaissance = new Date(dnVal);
+    const dateDepartRP = new Date(drpVal);
+    const dateReleve = new Date(drVal);
+    const sam = parseFloat(document.getElementById('sam').value) || 0;
+    const trimestresValidesReleve = parseInt(document.getElementById('trimestresValides').value) || 0;
+    const salaireActuelBrut = parseFloat(document.getElementById('salaireActuelBrut').value) || 0;
+    const quotiteRP = parseFloat(document.getElementById('quotiteRP').value);
+
+    // Trimestres estimes valides a la date de depart en RP (extrapolation simple depuis le releve, 4 trim/an max)
+    const moisReleveDepart = Math.max(0, moisEntre(dateReleve, dateDepartRP));
+    const trimestresEstimesEntreReleveEtRP = Math.min(Math.floor(moisReleveDepart/3), Math.ceil(moisReleveDepart/3));
+    const trimestresValidesRP = trimestresValidesReleve + trimestresEstimesEntreReleveEtRP;
+
+    const ageRPMois = moisEntre(dateNaissance, dateDepartRP);
+    const ageRPAns = ageRPMois/12;
+
+    const conditionAge = ageRPAns >= AGE_MIN_RP_ANS;
+    const conditionTrimestres = trimestresValidesRP >= TRIMESTRES_MIN_RP;
+
+    let html = '';
+
+    if(!conditionAge || !conditionTrimestres){
+      html += '<div class="warn"><strong>Conditions de la retraite progressive non remplies à cette date :</strong><ul style="margin:8px 0 0 20px;">';
+      if(!conditionAge) html += '<li>Âge à la date de départ : ' + ageRPAns.toFixed(1) + ' ans (minimum requis : ' + AGE_MIN_RP_ANS + ' ans)</li>';
+      if(!conditionTrimestres) html += '<li>Trimestres estimés : ' + trimestresValidesRP + ' (minimum requis : ' + TRIMESTRES_MIN_RP + ' trimestres tous régimes)</li>';
+      html += '</ul></div>';
+    }
+
+    const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
+    const fractionPension = 1 - quotiteRP;
+    const pensionProgressiveMensuelle = resPension.pensionMensuelle * fractionPension;
+    const salaireReduit = salaireActuelBrut * quotiteRP;
+    const revenuCombine = salaireReduit + pensionProgressiveMensuelle;
+
+    // Verification seuil de validation des 4 trimestres/an
+    const salaireAnnuelReduit = salaireReduit * 12;
+    const seuilAnnuel4Trim = SEUIL_TRIMESTRE_SMIC * 4;
+    const nbTrimValidablesParAn = Math.min(4, Math.floor(salaireAnnuelReduit / SEUIL_TRIMESTRE_SMIC));
+
+    html += '<div class="result-section">';
+    html += '<h3>Éligibilité à la date choisie (' + formatDate(dateDepartRP) + ')</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:.76rem;color:var(--gris-txt);margin:0 0 4px;">Âge</p><p style="font-size:1.1rem;font-weight:600;margin:0;color:' + (conditionAge?'var(--vert)':'var(--rouge)') + ';">' + ageRPAns.toFixed(1) + ' ans</p><p style="font-size:.72rem;color:var(--gris-txt);margin:3px 0 0;">Minimum : ' + AGE_MIN_RP_ANS + ' ans</p></div>';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:.76rem;color:var(--gris-txt);margin:0 0 4px;">Trimestres estimés</p><p style="font-size:1.1rem;font-weight:600;margin:0;color:' + (conditionTrimestres?'var(--vert)':'var(--rouge)') + ';">' + trimestresValidesRP + '</p><p style="font-size:.72rem;color:var(--gris-txt);margin:3px 0 0;">Minimum : ' + TRIMESTRES_MIN_RP + '</p></div>';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:.76rem;color:var(--gris-txt);margin:0 0 4px;">Quotité de travail</p><p style="font-size:1.1rem;font-weight:600;margin:0;">' + (quotiteRP*100).toFixed(0) + ' %</p><p style="font-size:.72rem;color:var(--gris-txt);margin:3px 0 0;">Doit être entre 40% et 80%</p></div>';
+    html += '</div></div>';
+
+    html += '<div class="result-section">';
+    html += '<h3>Pension théorique de base (si vous partiez définitivement à cette date)</h3>';
+    if(resPension.typeCoef === 'decote'){
+      html += '<div class="warn"><strong>Décote :</strong> ' + Math.min(resPension.trimManquantsDuree,resPension.trimManquantsAge) + ' trimestre(s) manquant(s) retenu(s) &times; 0,625 point = taux de <strong>' + resPension.taux.toFixed(3) + ' %</strong> (au lieu de 50%)</div>';
+    } else if(resPension.typeCoef === 'surcote'){
+      html += '<div class="info"><strong>Surcote :</strong> ' + resPension.trimSurcote + ' trimestre(s) au-delà du requis &rarr; pension majorée de ' + resPension.majSurcote.toFixed(2) + '%</div>';
+    } else {
+      html += '<div class="info"><strong>Taux plein : 50 %</strong></div>';
+    }
+    html += '<table><tbody>';
+    html += '<tr><td>SAM (salaire annuel moyen)</td><td style="text-align:right;">' + formatEuro(sam) + '</td></tr>';
+    html += '<tr><td>Trimestres validés / requis</td><td style="text-align:right;">' + trimestresValidesRP + ' / ' + resPension.TR + '</td></tr>';
+    html += '<tr style="font-weight:600;"><td>Pension de base mensuelle théorique (temps plein)</td><td style="text-align:right;">' + formatEuro(resPension.pensionMensuelle) + '</td></tr>';
+    html += '</tbody></table></div>';
+
+    html += '<div class="result-section">';
+    html += '<h3>Vos revenus pendant la retraite progressive</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;">';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--gris-txt);margin:0 0 4px;">Salaire réduit (' + (quotiteRP*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;">' + formatEuro(salaireReduit) + '</p></div>';
+    html += '<div style="background:var(--bleu-clair);border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--bleu);margin:0 0 4px;">Fraction de pension (' + (fractionPension*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;color:var(--bleu);">' + formatEuro(pensionProgressiveMensuelle) + '</p></div>';
+    html += '</div>';
+    html += '<div style="background:var(--vert);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">';
+    html += '<div><p style="font-size:12px;color:#dcfce7;margin:0 0 2px;font-weight:500;">Revenu total mensuel pendant la RP</p><p style="font-size:11px;color:#bbf7d0;margin:0;">Salaire + fraction de pension de base &mdash; hors Agirc-Arrco</p></div>';
+    html += '<span style="font-size:26px;font-weight:600;color:#fff;">' + formatEuro(revenuCombine) + '</span></div></div>';
+
+    if(nbTrimValidablesParAn < 4){
+      html += '<div class="warn"><strong>&#9888;&#65039; Attention aux trimestres :</strong> avec un salaire réduit de ' + formatEuro(salaireReduit) + '/mois (' + formatEuro(salaireAnnuelReduit) + '/an), vous ne validerez que <strong>' + nbTrimValidablesParAn + ' trimestre(s) sur 4</strong> par an (seuil 2026 : ' + formatEuro(SEUIL_TRIMESTRE_SMIC) + '/trimestre). Cela peut retarder votre passage au taux plein. Options : choisir une quotité plus élevée, ou envisager la surcotisation.</div>';
+    }
+
+    html += '<div class="warn"><strong>Important :</strong> ce montant ne comprend pas la retraite complémentaire Agirc-Arrco, qui applique la même fraction et représente généralement 30 à 40% de la pension totale &mdash; le revenu réel pendant la RP sera donc supérieur à ce qui est affiché ici. Version à venir.</div>';
+
+    document.getElementById('resultat').innerHTML = html;
+
+    afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteRP);
+    switchTab('resultats');
+  }
+
+  function afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteActuelle){
+    const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
+    const quotites = [0.40, 0.50, 0.60, 0.70, 0.80];
+    const lignes = quotites.map(q=>{
+      const fraction = 1-q;
+      const pensionPart = resPension.pensionMensuelle * fraction;
+      const salairePart = salaireActuelBrut * q;
+      return { q, salairePart, pensionPart, total: salairePart+pensionPart, ok: Math.abs(q-quotiteActuelle)<0.001 };
+    });
+    const maxTotal = Math.max(...lignes.map(l=>l.total));
+
+    let html = '<div class="result-section"><h3>Comparaison du revenu total selon la quotité choisie</h3>';
+    html += '<p style="font-size:.82rem;color:var(--gris-txt);margin-bottom:10px;">Salaire réduit + fraction de pension de base, pour un départ en RP le ' + formatDate(dateDepartRP) + '.</p>';
+    html += '<table><thead><tr><th>Quotité</th><th style="text-align:right;">Salaire réduit</th><th style="text-align:right;">Fraction pension</th><th style="text-align:right;">Total mensuel</th><th>Répartition</th></tr></thead><tbody>';
+    lignes.forEach(l=>{
+      html += '<tr style="background:'+(l.ok?'#eff6ff':'#fff')+';">';
+      html += '<td style="font-weight:'+(l.ok?'700':'400')+';color:'+(l.ok?'var(--bleu)':'inherit')+';">'+(l.q*100).toFixed(0)+' %'+(l.ok?' &larr;':'')+'</td>';
+      html += '<td style="text-align:right;">'+formatEuro(l.salairePart)+'</td>';
+      html += '<td style="text-align:right;">'+formatEuro(l.pensionPart)+'</td>';
+      html += '<td style="text-align:right;font-weight:700;color:'+(l.ok?'var(--bleu)':'var(--vert)')+';">'+formatEuro(l.total)+'</td>';
+      html += '<td><div style="background:#e2e8f0;border-radius:3px;height:10px;"><div style="background:'+(l.ok?'var(--bleu)':'var(--vert)')+';border-radius:3px;height:10px;width:'+(l.total/maxTotal*100).toFixed(1)+'%;"></div></div></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<p style="font-size:.78rem;color:var(--gris-txt);margin-top:8px;">Rappel : la quotité doit rester entre 40% et 80%. En-dessous de 40% ou au-dessus de 80%, la retraite progressive n\'est pas accessible.</p>';
+    html += '</div>';
+    document.getElementById('comparateur').innerHTML = html;
+  }
+</script>
+</body>
+</html>
