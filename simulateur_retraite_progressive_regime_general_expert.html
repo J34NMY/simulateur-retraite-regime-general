@@ -58,6 +58,15 @@
     &#9888;&#65039; <strong>Outil éducatif NON OFFICIEL.</strong> Pour votre estimation officielle, consultez <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> (simulateur M@rel).
   </div>
 
+  <div id="transfert-banner" style="margin: 16px 0; padding: 16px 18px; background: #eff6ff; border: 2px solid #1e40af; border-radius: 8px; display: none;">
+    <p style="margin: 0 0 10px; font-weight: bold; color: #1e3a8a;">&#128203; Vos données du mode Guidé ont été retrouvées</p>
+    <p style="margin: 0 0 12px; color: #1e3a8a; font-size: 14px;">Chargez-les pour ne pas tout ressaisir.</p>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button onclick="chargerDonneesTransfert()" class="btn primary">Les charger</button>
+      <button onclick="document.getElementById('transfert-banner').style.display='none'" class="btn secondary">Non merci, je saisis moi-même</button>
+    </div>
+  </div>
+
   <div class="tabs-nav">
     <button class="tab-button active" onclick="switchTab('parametres')">Paramètres</button>
     <button class="tab-button" onclick="switchTab('resultats')">Retraite Progressive</button>
@@ -231,6 +240,47 @@
     document.getElementById('tab-'+tabName).classList.add('active');
     document.querySelector('[onclick="switchTab(\''+tabName+'\')"]').classList.add('active');
   }
+
+  function lireParametresTransfert(){
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const data = params.get('data');
+      if (data) return JSON.parse(data);
+    } catch(e) {}
+    return null;
+  }
+
+  function appliquerParametresTransfert(p){
+    if(p.dateNaissance) document.getElementById('dateNaissance').value = p.dateNaissance;
+    if(p.sexe) document.getElementById('sexe').value = p.sexe;
+    if(p.trimestresValides !== undefined) document.getElementById('trimestresValides').value = p.trimestresValides;
+    if(p.dateReleve) document.getElementById('dateReleve').value = p.dateReleve;
+    if(p.sam !== undefined) document.getElementById('sam').value = p.sam;
+    if(p.pointsAgircArrco !== undefined) document.getElementById('pointsAgircArrco').value = p.pointsAgircArrco;
+    if(p.salaireActuelBrut !== undefined) document.getElementById('salaireActuelBrut').value = p.salaireActuelBrut;
+    if(p.quotiteRP !== undefined) document.getElementById('quotiteRP').value = p.quotiteRP;
+    if(p.dateDepartRP) document.getElementById('dateDepartRP').value = p.dateDepartRP;
+    if(p.dateDepartDefinitif) document.getElementById('dateDepartDefinitif').value = p.dateDepartDefinitif;
+  }
+
+  function chargerDonneesTransfert(){
+    try {
+      const p = lireParametresTransfert();
+      if(!p){ alert('Aucune donnée du mode Guidé trouvée. Revenez au wizard, cliquez sur "Calculer ma retraite progressive", puis réessayez.'); return; }
+      appliquerParametresTransfert(p);
+      document.getElementById('transfert-banner').style.display = 'none';
+      const params = new URLSearchParams(window.location.search);
+      const onglet = params.get('onglet');
+      if(onglet){ switchTab(onglet); document.querySelector('.tabs-nav').scrollIntoView({behavior:'smooth'}); }
+    } catch(err){ alert('Erreur lors du chargement : ' + err.message); }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('depuis') === 'guide' && lireParametresTransfert()){
+      document.getElementById('transfert-banner').style.display = 'block';
+    }
+  });
 
   // ============================================
   // BAREME OFFICIEL PAR GENERATION

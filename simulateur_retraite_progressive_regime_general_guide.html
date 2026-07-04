@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistant Simulateur de Retraite Progressive - Régime Général (Salarié du privé)</title>
+  <style>
+    :root {
+      --bleu:#1e40af; --bleu-clair:#eff6ff; --bleu-bord:#bfdbfe;
+      --vert:#15803d; --vert-clair:#f0fdf4;
+      --gris-fond:#f8fafc; --gris-bord:#e2e8f0; --gris-txt:#64748b;
+      --rouge:#dc2626; --orange:#f59e0b;
+      --blanc:#ffffff; --noir:#0f172a;
+      --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.07);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,-apple-system,sans-serif; background:var(--gris-fond); color:var(--noir); min-height:100vh; }
+    .header { background:var(--bleu); color:#fff; padding:16px 24px; text-align:center; }
+    .header h1 { font-size:1.3rem; font-weight:700; }
+    .header p  { font-size:0.82rem; opacity:.85; margin-top:3px; }
+    .mode-badge { display:inline-block; background:rgba(255,255,255,.2); border-radius:20px; padding:3px 12px; font-size:.75rem; margin-top:5px; }
+    .expert-btn { display:inline-block; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.4); border-radius:6px; padding:6px 14px; font-size:.8rem; color:#fff; text-decoration:none; margin-top:8px; cursor:pointer; }
+    .expert-btn:hover { background:rgba(255,255,255,.25); }
+    .wizard-container { max-width:820px; margin:0 auto; padding:20px 24px 60px; }
+    .progress-bar { background:#fff; border:1px solid var(--gris-bord); border-radius:var(--radius); padding:14px 20px; margin-bottom:20px; box-shadow:var(--shadow); }
+    .progress-steps { display:flex; align-items:center; margin-bottom:8px; }
+    .step-dot { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:700; flex-shrink:0; transition:all .3s; border:2px solid var(--gris-bord); background:#fff; color:var(--gris-txt); }
+    .step-dot.active { background:var(--bleu); color:#fff; border-color:var(--bleu); }
+    .step-dot.done   { background:var(--vert); color:#fff; border-color:var(--vert); }
+    .step-line { flex:1; height:2px; background:var(--gris-bord); transition:background .3s; }
+    .step-line.done { background:var(--vert); }
+    .progress-label { font-size:.82rem; color:var(--gris-txt); }
+    .progress-label strong { color:var(--bleu); }
+    .progress-track { height:4px; background:var(--gris-bord); border-radius:2px; margin-top:6px; }
+    .progress-fill  { height:4px; background:var(--bleu); border-radius:2px; transition:width .4s ease; }
+    .step-card { background:#fff; border:1px solid var(--gris-bord); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; display:none; }
+    .step-card.active { display:block; }
+    .step-header { background:var(--bleu-clair); border-bottom:1px solid var(--bleu-bord); padding:16px 20px; }
+    .step-header h2 { font-size:1.05rem; color:var(--bleu); font-weight:700; }
+    .step-header p  { font-size:.82rem; color:var(--gris-txt); margin-top:3px; }
+    .step-body { padding:20px; }
+    .field { margin-bottom:18px; }
+    .field label { display:block; font-size:.86rem; font-weight:600; margin-bottom:5px; }
+    .field input,.field select { width:100%; padding:9px 12px; border:1.5px solid var(--gris-bord); border-radius:7px; font-size:.93rem; color:var(--noir); background:#fff; transition:border-color .2s; }
+    .field input:focus,.field select:focus { outline:none; border-color:var(--bleu); box-shadow:0 0 0 3px rgba(30,64,175,.1); }
+    .field small { display:block; font-size:.76rem; color:var(--gris-txt); margin-top:4px; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .info-box { background:var(--bleu-clair); border-left:3px solid var(--bleu); border-radius:6px; padding:10px 12px; font-size:.81rem; color:#1e3a8a; margin-bottom:14px; }
+    .warn-box  { background:#fff7ed; border-left:3px solid var(--orange); border-radius:6px; padding:10px 12px; font-size:.81rem; color:#92400e; margin-bottom:14px; }
+    .step-nav { display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-top:1px solid var(--gris-bord); background:var(--gris-fond); }
+    .btn { padding:9px 20px; border-radius:7px; font-size:.88rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; }
+    .btn-primary   { background:var(--bleu); color:#fff; }
+    .btn-primary:hover { background:#1d3ba0; }
+    .btn-secondary { background:#fff; color:var(--bleu); border:1.5px solid var(--bleu); }
+    .btn-secondary:hover { background:var(--bleu-clair); }
+    .btn-success { background:var(--vert); color:#fff; padding:11px 26px; font-size:.95rem; }
+    .btn-success:hover { background:#14532d; }
+    .recap-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+    .recap-item { background:var(--gris-fond); border:1px solid var(--gris-bord); border-radius:7px; padding:9px 11px; font-size:.8rem; }
+    .recap-item .recap-label { color:var(--gris-txt); margin-bottom:2px; }
+    .recap-item .recap-val   { font-weight:700; }
+    .results-section { display:none; margin-top:20px; }
+    .results-section.active { display:block; }
+    .result-section { background:#fff; border:1px solid var(--gris-bord); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+    .result-section h3 { color:var(--bleu); font-size:.95rem; margin-bottom:8px; border-bottom:1px solid var(--gris-bord); padding-bottom:6px; }
+    .result-section p { font-size:.86rem; padding:3px 0; }
+    table { width:100%; border-collapse:collapse; font-size:.84rem; }
+    th,td { padding:8px; border:1px solid var(--gris-bord); text-align:left; }
+    th { background:var(--bleu); color:#fff; }
+    .info { background:#fefce8; border-left:3px solid var(--orange); border-radius:6px; padding:11px 14px; margin-bottom:10px; font-size:.83rem; }
+    .warn { background:#fff7ed; border-left:3px solid var(--orange); border-radius:6px; padding:11px 14px; margin-bottom:10px; font-size:.83rem; }
+    .validation-error { background:#fee2e2; border-left:4px solid var(--rouge); border-radius:6px; padding:9px 13px; font-size:.81rem; color:#991b1b; margin-top:10px; display:none; }
+    .validation-error.show { display:block; }
+    footer { text-align:center; padding:18px; font-size:.76rem; color:var(--gris-txt); border-top:1px solid var(--gris-bord); margin-top:28px; }
+    footer a { color:var(--bleu); }
+    @media (max-width:480px) { .field-row { grid-template-columns:1fr; } .recap-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>&#127963;&#65039; Assistant Simulateur de Retraite Progressive</h1>
+  <p>Salarié du régime général (secteur privé) - Mode Guidé</p>
+  <span class="mode-badge">&#10024; Assistant guidé - Résultat Retraite Progressive</span><br>
+  <a class="expert-btn" href="simulateur_retraite_progressive_regime_general_expert.html" target="_blank">
+    &#128295; Accéder au Mode Expert - Analyse Rachat, Comparateur, PDF...
+  </a>
+</div>
+
+<div style="margin:12px auto;max-width:800px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:0.82rem;color:#475569;text-align:center;">
+  Ce simulateur concerne les <strong>salariés du régime général</strong> (secteur privé). Il ne s'applique <strong>pas</strong> aux fonctionnaires, aux professions libérales (CNAVPL), ni aux travailleurs indépendants (SSI).
+</div>
+
+<div class="wizard-container">
+
+  <div class="progress-bar">
+    <div class="progress-steps">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+      <div class="step-line" id="line-3"></div>
+      <div class="step-dot" id="dot-4">4</div>
+      <div class="step-line" id="line-4"></div>
+      <div class="step-dot" id="dot-5">5</div>
+      <div class="step-line" id="line-5"></div>
+      <div class="step-dot" id="dot-6">6</div>
+    </div>
+    <div class="progress-label">Étape <strong id="step-current">1</strong> / <strong>6</strong> &mdash; <span id="step-name">Identité</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:16.6%"></div></div>
+  </div>
+
+  <!-- ETAPE 1 : IDENTITE -->
+  <div class="step-card active" id="step-1">
+    <div class="step-header">
+      <h2>&#128100; Étape 1 &mdash; Votre identité</h2>
+      <p>Détermine votre âge légal et vos trimestres requis selon votre génération.</p>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label for="dateNaissance">Date de naissance</label>
+        <input type="date" id="dateNaissance" value="" />
+        <small>Obligatoire — Circulaire Cnav 2026-07 (âge légal, trimestres requis, âge du taux plein automatique)</small>
+      </div>
+      <div class="field">
+        <label for="sexe">Sexe</label>
+        <select id="sexe"><option value="H">Homme</option><option value="F">Femme</option></select>
+        <small>Informatif à ce stade — réservé à de futures majorations liées aux enfants</small>
+      </div>
+      <div id="field-bareme" style="display:none;">
+        <div style="padding:10px 14px;background:var(--bleu-clair);border-radius:7px;font-weight:700;color:var(--bleu);font-size:.95rem;" id="baremeAffichage">&mdash;</div>
+      </div>
+      <div id="err-1" class="validation-error"></div>
+    </div>
+    <div class="step-nav">
+      <span></span>
+      <button class="btn btn-primary" onclick="allerEtape(2)">Suivant &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ETAPE 2 : CARRIERE AU RELEVE -->
+  <div class="step-card" id="step-2">
+    <div class="step-header">
+      <h2>&#128196; Étape 2 &mdash; Votre carrière au relevé</h2>
+      <p>Reportez les informations de votre relevé de carrière (info-retraite.fr).</p>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label for="trimestresValides">Trimestres validés (tous régimes alignés)</label>
+        <input type="number" id="trimestresValides" min="0" max="220" step="1" value="" />
+        <small>Privé, agricole, indépendants SSI confondus</small>
+      </div>
+      <div class="field">
+        <label for="dateReleve">Date du relevé</label>
+        <input type="date" id="dateReleve" value="" />
+        <small>Date à laquelle les trimestres ci-dessus sont arrêtés</small>
+      </div>
+      <div class="field">
+        <label for="sam">Salaire annuel moyen estimé (SAM)</label>
+        <input type="number" id="sam" min="0" step="100" value="" />
+        <small>Moyenne de vos <strong>25 meilleures années</strong> de salaire brut (primes/heures sup incluses), plafonnée au PASS chaque année (48 060 € en 2026). <strong>Ce n'est pas votre dernier salaire.</strong></small>
+      </div>
+      <div class="field">
+        <label for="pointsAgircArrco">Points Agirc-Arrco accumulés</label>
+        <input type="number" id="pointsAgircArrco" min="0" step="10" value="0" />
+        <small>Visible sur votre relevé de carrière (info-retraite.fr ou agirc-arrco.fr)</small>
+      </div>
+      <div id="err-2" class="validation-error"></div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-secondary" onclick="allerEtape(1)">&larr; Retour</button>
+      <button class="btn btn-primary" onclick="allerEtape(3)">Suivant &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ETAPE 3 : SITUATION ACTUELLE -->
+  <div class="step-card" id="step-3">
+    <div class="step-header">
+      <h2>&#128181; Étape 3 &mdash; Votre situation actuelle</h2>
+      <p>Sert de base au calcul de votre salaire réduit pendant la retraite progressive.</p>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label for="salaireActuelBrut">Salaire brut mensuel actuel (temps plein)</label>
+        <input type="number" id="salaireActuelBrut" min="0" step="50" value="" />
+        <small>Votre salaire brut à temps complet, avant tout passage en retraite progressive</small>
+      </div>
+      <div id="err-3" class="validation-error"></div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-secondary" onclick="allerEtape(2)">&larr; Retour</button>
+      <button class="btn btn-primary" onclick="allerEtape(4)">Suivant &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ETAPE 4 : PROJET DE RETRAITE PROGRESSIVE -->
+  <div class="step-card" id="step-4">
+    <div class="step-header">
+      <h2>&#9878;&#65039; Étape 4 &mdash; Votre projet de retraite progressive</h2>
+      <p>Minimum 60 ans + 150 trimestres tous régimes. Quotité entre 40% et 80%.</p>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label for="quotiteRP">Quotité de travail pendant la RP</label>
+        <select id="quotiteRP">
+          <option value="0.80">80 %</option>
+          <option value="0.70">70 %</option>
+          <option value="0.60" selected>60 %</option>
+          <option value="0.50">50 %</option>
+          <option value="0.40">40 %</option>
+        </select>
+        <small>Doit être comprise entre 40% et 80% d'un temps complet (Décret n°2025-681)</small>
+      </div>
+      <div class="field">
+        <label for="dateDepartRP">Date de départ en retraite progressive envisagée</label>
+        <input type="date" id="dateDepartRP" value="" />
+      </div>
+      <div id="err-4" class="validation-error"></div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-secondary" onclick="allerEtape(3)">&larr; Retour</button>
+      <button class="btn btn-primary" onclick="allerEtape(5)">Suivant &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ETAPE 5 : DEPART DEFINITIF -->
+  <div class="step-card" id="step-5">
+    <div class="step-header">
+      <h2>&#127942; Étape 5 &mdash; Votre départ définitif</h2>
+      <p>Facultatif, mais recommandé pour projeter votre pension une fois la RP terminée.</p>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label for="dateDepartDefinitif">Date de départ définitif envisagée</label>
+        <input type="date" id="dateDepartDefinitif" value="" />
+        <small>Fin de la retraite progressive — laissez vide si vous ne savez pas encore</small>
+      </div>
+      <div id="err-5" class="validation-error"></div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-secondary" onclick="allerEtape(4)">&larr; Retour</button>
+      <button class="btn btn-primary" onclick="allerEtape(6)">Suivant &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ETAPE 6 : RECAP + CALCUL -->
+  <div class="step-card" id="step-6">
+    <div class="step-header">
+      <h2>&#9989; Étape 6 &mdash; Récapitulatif</h2>
+      <p>Vérifiez vos données, puis lancez le calcul.</p>
+    </div>
+    <div class="step-body">
+      <div class="recap-grid" id="recap-grid"></div>
+      <div id="err-6" class="validation-error"></div>
+      <div style="text-align:center;">
+        <button class="btn btn-success" onclick="lancerCalcul()">&#128202; Calculer ma retraite progressive</button>
+      </div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-secondary" onclick="allerEtape(5)">&larr; Retour</button>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- RESULTATS -->
+  <div class="results-section" id="results-section">
+    <div id="resultat"></div>
+    <div id="comparateur" style="margin-top:14px;"></div>
+    <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="modifierSimulation()">Modifier mes données</button>
+      <a class="btn btn-secondary" href="simulateur_retraite_progressive_regime_general_expert.html" target="_blank">Mode Expert</a>
+    </div>
+    <p style="text-align:center;margin-top:16px;font-size:.78rem;color:var(--gris-txt);">Cet outil vous a été utile ? &#128172; <a href="https://docs.google.com/forms/d/e/1FAIpQLSe03RqW5-BDHKrUkZcvuT6sa6SYraD5LS2FVkneO-4wkNTOqg/viewform" target="_blank">Donner mon avis</a> &middot; &#9749; <a href="https://ko-fi.com/j34nmy" target="_blank">Soutenir le projet</a></p>
+  </div>
+
+  <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--radius);padding:12px 15px;margin-top:20px;font-size:.78rem;color:#92400e;">
+    &#9888;&#65039; <strong>Outil éducatif NON OFFICIEL.</strong>
+    Pour votre estimation officielle, consultez <a href="https://www.info-retraite.fr" target="_blank" style="color:var(--bleu);">info-retraite.fr</a> (simulateur M@rel).
+    Aucune donnée saisie n'est transmise.
+  </div>
+
+</div>
+
+<footer>
+  Assistant Simulateur de Retraite Progressive &mdash; Régime Général &mdash; V01 &mdash; Développé bénévolement par J34NMY<br>
+  <a href="mode-emploi.html">Mode d'emploi</a> &middot; <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a>
+</footer>
+
+<script>
+  const baremeGenerations = [
+    { debut:'1953-01-01', fin:'1953-12-31', ageLegalAns:61, ageLegalMois:2,  trimestresRequis:165, ageTauxPlein:66.17 },
+    { debut:'1954-01-01', fin:'1954-12-31', ageLegalAns:61, ageLegalMois:7,  trimestresRequis:165, ageTauxPlein:66.58 },
+    { debut:'1955-01-01', fin:'1957-12-31', ageLegalAns:62, ageLegalMois:0,  trimestresRequis:166, ageTauxPlein:67 },
+    { debut:'1958-01-01', fin:'1960-12-31', ageLegalAns:62, ageLegalMois:0,  trimestresRequis:167, ageTauxPlein:67 },
+    { debut:'1961-01-01', fin:'1961-08-31', ageLegalAns:62, ageLegalMois:0,  trimestresRequis:168, ageTauxPlein:67 },
+    { debut:'1961-09-01', fin:'1961-12-31', ageLegalAns:62, ageLegalMois:3,  trimestresRequis:169, ageTauxPlein:67 },
+    { debut:'1962-01-01', fin:'1962-12-31', ageLegalAns:62, ageLegalMois:6,  trimestresRequis:169, ageTauxPlein:67 },
+    { debut:'1963-01-01', fin:'1963-12-31', ageLegalAns:62, ageLegalMois:9,  trimestresRequis:170, ageTauxPlein:67 },
+    { debut:'1964-01-01', fin:'1964-12-31', ageLegalAns:62, ageLegalMois:9,  trimestresRequis:170, ageTauxPlein:67 },
+    { debut:'1965-01-01', fin:'1965-03-31', ageLegalAns:62, ageLegalMois:9,  trimestresRequis:170, ageTauxPlein:67 },
+    { debut:'1965-04-01', fin:'1965-12-31', ageLegalAns:63, ageLegalMois:0,  trimestresRequis:171, ageTauxPlein:67 },
+    { debut:'1966-01-01', fin:'1966-12-31', ageLegalAns:63, ageLegalMois:3,  trimestresRequis:172, ageTauxPlein:67 },
+    { debut:'1967-01-01', fin:'1967-12-31', ageLegalAns:63, ageLegalMois:6,  trimestresRequis:172, ageTauxPlein:67 },
+    { debut:'1968-01-01', fin:'1968-12-31', ageLegalAns:63, ageLegalMois:9,  trimestresRequis:172, ageTauxPlein:67 },
+    { debut:'1969-01-01', fin:'2100-12-31', ageLegalAns:64, ageLegalMois:0,  trimestresRequis:172, ageTauxPlein:67 }
+  ];
+
+  const AGE_MIN_RP_ANS = 60;
+  const TRIMESTRES_MIN_RP = 150;
+  const SEUIL_TRIMESTRE_SMIC = 1803;
+  const PASS_2026 = 48060;
+  const VALEUR_SERVICE_POINT_ARRCO = 1.4386;
+
+  const coefficientAnticipationArrco = {
+    0:1.00, 1:0.99, 2:0.98, 3:0.97, 4:0.96, 5:0.95, 6:0.94, 7:0.93, 8:0.92, 9:0.91, 10:0.90,
+    11:0.89, 12:0.88, 13:0.8675, 14:0.855, 15:0.8425, 16:0.83, 17:0.8175, 18:0.805, 19:0.7925, 20:0.78
+  };
+  function getCoefficientAnticipationArrco(trimestresManquants){
+    const tm = Math.max(0, Math.min(20, Math.round(trimestresManquants)));
+    return coefficientAnticipationArrco[tm];
+  }
+
+  function trouverBareme(dateNaissance){
+    const dnStr = dateNaissance.toISOString().slice(0,10);
+    for(const b of baremeGenerations){
+      if(dnStr >= b.debut && dnStr <= b.fin) return b;
+    }
+    return { ageLegalAns:60, ageLegalMois:0, trimestresRequis:160, ageTauxPlein:65 };
+  }
+  function ajouterMois(date, mois){
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + mois);
+    return d;
+  }
+  function moisEntre(d1, d2){
+    return (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth()) - (d2.getDate()<d1.getDate()?1:0);
+  }
+  function formatEuro(v){
+    return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v||0);
+  }
+  function formatDate(d){
+    return d instanceof Date && !isNaN(d) ? d.toLocaleDateString('fr-FR') : '-';
+  }
+
+  function calculerPensionBase(dateNaissance, dateCalcul, trimestresValidesADateCalcul, sam){
+    const bareme = trouverBareme(dateNaissance);
+    const TR = bareme.trimestresRequis;
+    const dateAgeLegal = ajouterMois(dateNaissance, bareme.ageLegalAns*12 + bareme.ageLegalMois);
+    const dateTauxPlein = new Date(dateNaissance);
+    dateTauxPlein.setFullYear(dateTauxPlein.getFullYear() + Math.floor(bareme.ageTauxPlein));
+    if(bareme.ageTauxPlein % 1 !== 0){
+      dateTauxPlein.setMonth(dateTauxPlein.getMonth() + Math.round((bareme.ageTauxPlein%1)*12));
+    }
+    const eligible = dateCalcul >= dateAgeLegal;
+    const tauxPleinAuto = dateCalcul >= dateTauxPlein;
+    const trimManquantsPourTauxPlein = Math.max(0, TR - trimestresValidesADateCalcul);
+
+    let taux, typeCoef, trimManquantsDuree=0, trimManquantsAge=0, trimSurcote=0, majSurcote=0, coefSurcoteMontant=1;
+
+    if(tauxPleinAuto || trimManquantsPourTauxPlein === 0){
+      taux = 50; typeCoef = 'plein';
+      if(trimestresValidesADateCalcul > TR && dateCalcul > dateAgeLegal){
+        trimSurcote = trimestresValidesADateCalcul - TR;
+        majSurcote = trimSurcote * 1.25;
+        coefSurcoteMontant = 1 + majSurcote/100;
+        typeCoef = 'surcote';
+      }
+    } else {
+      trimManquantsDuree = trimManquantsPourTauxPlein;
+      trimManquantsAge = Math.max(0, Math.ceil(moisEntre(dateCalcul, dateTauxPlein)/3));
+      const trimRetenu = Math.min(trimManquantsDuree, trimManquantsAge);
+      taux = Math.max(50 - trimRetenu*0.625, 0);
+      typeCoef = 'decote';
+    }
+
+    const ratioProrata = Math.min(1, trimestresValidesADateCalcul / TR);
+    const pensionAnnuelle = sam * (taux/100) * ratioProrata * coefSurcoteMontant;
+
+    return {
+      bareme, TR, dateAgeLegal, dateTauxPlein, eligible, taux, typeCoef,
+      trimManquantsDuree, trimManquantsAge, trimSurcote, majSurcote,
+      ratioProrata, pensionAnnuelle, pensionMensuelle: pensionAnnuelle/12
+    };
+  }
+
+  function calculerProjectionDefinitive(dateNaissance, dateDepartRP, dateDepartDefinitif, trimestresValidesRP, sam, pointsAgircArrco, salaireAnnuelReduit){
+    const PRIX_ACHAT_POINT_ARRCO = 20.1877;
+    const TAUX_CONTRACTUEL_T1 = 0.0620;
+    const dureeRPAnnees = Math.max(0, moisEntre(dateDepartRP, dateDepartDefinitif)/12);
+    const nbTrimValidablesParAnLocal = Math.min(4, Math.floor(salaireAnnuelReduit / SEUIL_TRIMESTRE_SMIC));
+
+    const trimestresSupplementairesRP = Math.round(nbTrimValidablesParAnLocal * dureeRPAnnees);
+    const trimestresValidesDefinitif = trimestresValidesRP + trimestresSupplementairesRP;
+
+    const pointsAnnuelsRP = Math.min(salaireAnnuelReduit, PASS_2026) * TAUX_CONTRACTUEL_T1 / PRIX_ACHAT_POINT_ARRCO;
+    const pointsSupplementairesRP = Math.round(pointsAnnuelsRP * dureeRPAnnees);
+    const pointsAgircArrcoDefinitif = pointsAgircArrco + pointsSupplementairesRP;
+
+    const resPensionDefinitive = calculerPensionBase(dateNaissance, dateDepartDefinitif, trimestresValidesDefinitif, sam);
+    const trimManquantsDefinitifArrco = resPensionDefinitive.typeCoef === 'decote' ? Math.min(resPensionDefinitive.trimManquantsDuree, resPensionDefinitive.trimManquantsAge) : 0;
+    const coefAnticipationArrcoDefinitif = getCoefficientAnticipationArrco(trimManquantsDefinitifArrco);
+    const pensionArrcoDefinitiveMensuelle = (pointsAgircArrcoDefinitif * VALEUR_SERVICE_POINT_ARRCO / 12) * coefAnticipationArrcoDefinitif;
+    const pensionTotaleDefinitive = resPensionDefinitive.pensionMensuelle + pensionArrcoDefinitiveMensuelle;
+
+    return { dureeRPAnnees, trimestresValidesDefinitif, pointsAgircArrcoDefinitif, resPensionDefinitive,
+             trimManquantsDefinitifArrco, coefAnticipationArrcoDefinitif, pensionArrcoDefinitiveMensuelle, pensionTotaleDefinitive };
+  }
+
+  let etapeActuelle = 1;
+  const NOMS_ETAPES = ['Identité','Carrière','Situation actuelle','Projet RP','Départ définitif','Récapitulatif'];
+
+  function allerEtape(cible){
+    document.querySelectorAll('.validation-error').forEach(e=>e.classList.remove('show'));
+    if(cible>etapeActuelle && !validerEtapeWizard(etapeActuelle)) return;
+    if(cible<etapeActuelle) document.getElementById('results-section').classList.remove('active');
+    document.getElementById('step-'+etapeActuelle).classList.remove('active');
+    const dA=document.getElementById('dot-'+etapeActuelle);
+    if(dA){dA.classList.remove('active');dA.classList.add('done');dA.innerHTML='&#10003;';}
+    const li=document.getElementById('line-'+etapeActuelle);if(li)li.classList.add('done');
+    etapeActuelle=cible;
+    const sC=document.getElementById('step-'+etapeActuelle);if(sC)sC.classList.add('active');
+    const dC=document.getElementById('dot-'+etapeActuelle);
+    if(dC){dC.classList.remove('done');dC.classList.add('active');dC.textContent=etapeActuelle;}
+    document.getElementById('step-current').textContent=etapeActuelle;
+    document.getElementById('step-name').textContent=NOMS_ETAPES[etapeActuelle-1];
+    document.getElementById('progress-fill').style.width=((etapeActuelle/6)*100)+'%';
+    if(etapeActuelle===6) construireRecap();
+    if(etapeActuelle===1) mettreAJourAffichageBareme();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function mettreAJourAffichageBareme(){
+    const dn = document.getElementById('dateNaissance').value;
+    const champ = document.getElementById('field-bareme');
+    if(!dn){ champ.style.display='none'; return; }
+    const b = trouverBareme(new Date(dn));
+    document.getElementById('baremeAffichage').textContent =
+      'Âge légal : ' + b.ageLegalAns + ' ans' + (b.ageLegalMois>0?' '+b.ageLegalMois+' mois':'') +
+      ' — Trimestres requis : ' + b.trimestresRequis + ' — Taux plein automatique : 67 ans';
+    champ.style.display='block';
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('dateNaissance').addEventListener('change', mettreAJourAffichageBareme);
+  });
+
+  function validerEtapeWizard(n){
+    const err=document.getElementById('err-'+n); if(!err) return true;
+    err.classList.remove('show');
+    if(n===1 && !document.getElementById('dateNaissance').value){ err.textContent='Date de naissance obligatoire.'; err.classList.add('show'); return false; }
+    if(n===2){
+      if(!document.getElementById('trimestresValides').value){ err.textContent='Trimestres validés obligatoires.'; err.classList.add('show'); return false; }
+      if(!document.getElementById('dateReleve').value){ err.textContent='Date du relevé obligatoire.'; err.classList.add('show'); return false; }
+      if(!document.getElementById('sam').value){ err.textContent='Salaire annuel moyen (SAM) obligatoire.'; err.classList.add('show'); return false; }
+    }
+    if(n===3 && !document.getElementById('salaireActuelBrut').value){ err.textContent='Salaire brut mensuel actuel obligatoire.'; err.classList.add('show'); return false; }
+    if(n===4 && !document.getElementById('dateDepartRP').value){ err.textContent='Date de départ en retraite progressive obligatoire.'; err.classList.add('show'); return false; }
+    return true;
+  }
+
+  function construireRecap(){
+    const dn=document.getElementById('dateNaissance').value;
+    const dr=document.getElementById('dateReleve').value;
+    const ddrp=document.getElementById('dateDepartRP').value;
+    const ddef=document.getElementById('dateDepartDefinitif').value;
+    const q=document.getElementById('quotiteRP').value;
+    const items=[
+      {l:'Date de naissance',v:dn?new Date(dn).toLocaleDateString('fr-FR'):'Manquante'},
+      {l:'Sexe',v:document.getElementById('sexe').value==='F'?'Femme':'Homme'},
+      {l:'Trimestres validés',v:document.getElementById('trimestresValides').value+' trim.'},
+      {l:'Date du relevé',v:dr?new Date(dr).toLocaleDateString('fr-FR'):'Manquante'},
+      {l:'SAM',v:formatEuro(parseFloat(document.getElementById('sam').value)||0)},
+      {l:'Points Agirc-Arrco',v:document.getElementById('pointsAgircArrco').value||'0'},
+      {l:'Salaire actuel (temps plein)',v:formatEuro(parseFloat(document.getElementById('salaireActuelBrut').value)||0)},
+      {l:'Quotité pendant la RP',v:(parseFloat(q)*100).toFixed(0)+' %'},
+      {l:'Départ en RP',v:ddrp?new Date(ddrp).toLocaleDateString('fr-FR'):'Manquante'},
+      {l:'Départ définitif',v:ddef?new Date(ddef).toLocaleDateString('fr-FR'):'Non renseigné'},
+    ];
+    document.getElementById('recap-grid').innerHTML=items.map(i=>'<div class="recap-item"><div class="recap-label">'+i.l+'</div><div class="recap-val">'+i.v+'</div></div>').join('');
+  }
+
+  function modifierSimulation(){
+    document.getElementById('results-section').classList.remove('active');
+    allerEtape(1);
+  }
+
+  function lancerCalcul(){
+    document.getElementById('err-6').classList.remove('show');
+    document.getElementById('resultat').innerHTML='<div class="info">Calcul en cours...</div>';
+    document.getElementById('comparateur').innerHTML='';
+    document.getElementById('results-section').classList.add('active');
+    document.getElementById('results-section').scrollIntoView({behavior:'smooth'});
+    setTimeout(calculer,50);
+  }
+
+  function calculer(){
+    const dateNaissance = new Date(document.getElementById('dateNaissance').value);
+    const dateDepartRP = new Date(document.getElementById('dateDepartRP').value);
+    const dateReleve = new Date(document.getElementById('dateReleve').value);
+    const sam = parseFloat(document.getElementById('sam').value) || 0;
+    const trimestresValidesReleve = parseInt(document.getElementById('trimestresValides').value) || 0;
+    const salaireActuelBrut = parseFloat(document.getElementById('salaireActuelBrut').value) || 0;
+    const quotiteRP = parseFloat(document.getElementById('quotiteRP').value);
+    const pointsAgircArrco = parseFloat(document.getElementById('pointsAgircArrco').value) || 0;
+
+    const moisReleveDepart = Math.max(0, moisEntre(dateReleve, dateDepartRP));
+    const trimestresEstimesEntreReleveEtRP = Math.floor(moisReleveDepart/3);
+    const trimestresValidesRP = trimestresValidesReleve + trimestresEstimesEntreReleveEtRP;
+
+    const ageRPMois = moisEntre(dateNaissance, dateDepartRP);
+    const ageRPAns = ageRPMois/12;
+
+    const conditionAge = ageRPAns >= AGE_MIN_RP_ANS;
+    const conditionTrimestres = trimestresValidesRP >= TRIMESTRES_MIN_RP;
+
+    // Donnees pour transfert vers le Mode Expert (encodees dans l'URL — pas de stockage navigateur,
+    // insensible aux blocages type "Tracking Prevention")
+    const parametresTransfert = {
+      dateNaissance: document.getElementById('dateNaissance').value,
+      sexe: document.getElementById('sexe').value,
+      trimestresValides: trimestresValidesReleve,
+      dateReleve: document.getElementById('dateReleve').value,
+      sam: sam,
+      pointsAgircArrco: pointsAgircArrco,
+      salaireActuelBrut: salaireActuelBrut,
+      quotiteRP: document.getElementById('quotiteRP').value,
+      dateDepartRP: document.getElementById('dateDepartRP').value,
+      dateDepartDefinitif: document.getElementById('dateDepartDefinitif').value
+    };
+    const donneesEncodees = encodeURIComponent(JSON.stringify(parametresTransfert));
+    const urlExpertSimple = 'simulateur_retraite_progressive_regime_general_expert.html?depuis=guide&data=' + donneesEncodees;
+    const urlExpertRachat = 'simulateur_retraite_progressive_regime_general_expert.html?depuis=guide&onglet=rachat&data=' + donneesEncodees;
+
+    let html = '';
+
+    if(!conditionAge || !conditionTrimestres){
+      html += '<div class="warn"><strong>Conditions de la retraite progressive non remplies à cette date :</strong><ul style="margin:8px 0 0 20px;">';
+      if(!conditionAge) html += '<li>Âge à la date de départ : ' + ageRPAns.toFixed(1) + ' ans (minimum requis : ' + AGE_MIN_RP_ANS + ' ans)</li>';
+      if(!conditionTrimestres) html += '<li>Trimestres estimés : ' + trimestresValidesRP + ' (minimum requis : ' + TRIMESTRES_MIN_RP + ' trimestres tous régimes)</li>';
+      html += '</ul></div>';
+    }
+
+    const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
+    const fractionPension = 1 - quotiteRP;
+    const pensionBaseProgressiveMensuelle = resPension.pensionMensuelle * fractionPension;
+
+    const trimManquantsPourArrco = resPension.typeCoef === 'decote' ? Math.min(resPension.trimManquantsDuree, resPension.trimManquantsAge) : 0;
+    const coefAnticipationArrco = getCoefficientAnticipationArrco(trimManquantsPourArrco);
+    const pensionArrcoTheoriqueMensuelle = (pointsAgircArrco * VALEUR_SERVICE_POINT_ARRCO) / 12;
+    const pensionArrcoProgressiveMensuelle = pensionArrcoTheoriqueMensuelle * fractionPension * coefAnticipationArrco;
+
+    const pensionProgressiveMensuelle = pensionBaseProgressiveMensuelle + pensionArrcoProgressiveMensuelle;
+    const salaireReduit = salaireActuelBrut * quotiteRP;
+    const revenuCombine = salaireReduit + pensionProgressiveMensuelle;
+
+    const salaireAnnuelReduit = salaireReduit * 12;
+    const nbTrimValidablesParAn = Math.min(4, Math.floor(salaireAnnuelReduit / SEUIL_TRIMESTRE_SMIC));
+
+    html += '<div class="result-section">';
+    html += '<h3>Éligibilité à la date choisie (' + formatDate(dateDepartRP) + ')</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:.76rem;color:var(--gris-txt);margin:0 0 4px;">Âge</p><p style="font-size:1.1rem;font-weight:600;margin:0;color:' + (conditionAge?'var(--vert)':'var(--rouge)') + ';">' + ageRPAns.toFixed(1) + ' ans</p></div>';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:.76rem;color:var(--gris-txt);margin:0 0 4px;">Trimestres estimés</p><p style="font-size:1.1rem;font-weight:600;margin:0;color:' + (conditionTrimestres?'var(--vert)':'var(--rouge)') + ';">' + trimestresValidesRP + '</p></div>';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:12px;"><p style="font-size:.76rem;color:var(--gris-txt);margin:0 0 4px;">Quotité RP</p><p style="font-size:1.1rem;font-weight:600;margin:0;">' + (quotiteRP*100).toFixed(0) + ' %</p></div>';
+    html += '</div></div>';
+
+    html += '<div class="result-section">';
+    html += '<h3>Vos revenus pendant la retraite progressive</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">';
+    html += '<div style="background:#f8fafc;border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--gris-txt);margin:0 0 4px;">Salaire réduit (' + (quotiteRP*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;">' + formatEuro(salaireReduit) + '</p></div>';
+    html += '<div style="background:var(--bleu-clair);border-radius:8px;padding:14px;"><p style="font-size:12px;color:var(--bleu);margin:0 0 4px;">Fraction pension base (' + (fractionPension*100).toFixed(0) + '%)</p><p style="font-size:20px;font-weight:600;margin:0;color:var(--bleu);">' + formatEuro(pensionBaseProgressiveMensuelle) + '</p></div>';
+    html += '</div>';
+    html += '<div style="background:#f5f3ff;border-radius:8px;padding:14px;margin-bottom:12px;"><p style="font-size:12px;color:#6d28d9;margin:0 0 4px;">Fraction pension complémentaire (' + (fractionPension*100).toFixed(0) + '%' + (coefAnticipationArrco<1?' &times; coef. '+coefAnticipationArrco.toFixed(3):'') + ')</p><p style="font-size:20px;font-weight:600;margin:0;color:#6d28d9;">' + formatEuro(pensionArrcoProgressiveMensuelle) + '</p></div>';
+    html += '<div style="background:var(--vert);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">';
+    html += '<div><p style="font-size:12px;color:#dcfce7;margin:0 0 2px;font-weight:500;">Revenu total mensuel pendant la RP</p></div>';
+    html += '<span style="font-size:26px;font-weight:600;color:#fff;">' + formatEuro(revenuCombine) + '</span></div></div>';
+
+    if(nbTrimValidablesParAn < 4){
+      html += '<div class="warn"><strong>&#9888;&#65039; Attention aux trimestres :</strong> avec un salaire réduit de ' + formatEuro(salaireReduit) + '/mois, vous ne validerez que <strong>' + nbTrimValidablesParAn + ' trimestre(s) sur 4</strong> par an (seuil 2026 : ' + formatEuro(SEUIL_TRIMESTRE_SMIC) + '/trimestre). Cela peut retarder votre passage au taux plein.</div>';
+    }
+
+    const ddefVal = document.getElementById('dateDepartDefinitif').value;
+    let dateDepartDefinitif = null;
+    if(ddefVal){
+      dateDepartDefinitif = new Date(ddefVal);
+      const proj = calculerProjectionDefinitive(dateNaissance, dateDepartRP, dateDepartDefinitif, trimestresValidesRP, sam, pointsAgircArrco, salaireAnnuelReduit);
+
+      html += '<div class="result-section">';
+      html += '<h3>Pension à la retraite définitive (' + formatDate(dateDepartDefinitif) + ')</h3>';
+      html += '<p style="font-size:.82rem;color:var(--gris-txt);">Après ' + proj.dureeRPAnnees.toFixed(1) + ' an(s) de retraite progressive à ' + (quotiteRP*100).toFixed(0) + '%.</p>';
+      if(proj.resPensionDefinitive.typeCoef === 'decote'){
+        html += '<div class="warn">Décote encore présente : taux de ' + proj.resPensionDefinitive.taux.toFixed(3) + '% (au lieu de 50%).</div>';
+      } else if(proj.resPensionDefinitive.typeCoef === 'surcote'){
+        html += '<div class="info">Surcote acquise : pension de base majorée de ' + proj.resPensionDefinitive.majSurcote.toFixed(2) + '%.</div>';
+      } else {
+        html += '<div class="info">Taux plein atteint (50%), aucune minoration Agirc-Arrco.</div>';
+      }
+      html += '<div style="background:#1e40af;border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:10px;">';
+      html += '<div><p style="font-size:12px;color:#bfdbfe;margin:0 0 2px;font-weight:500;">Pension totale mensuelle à la retraite définitive</p></div>';
+      html += '<span style="font-size:26px;font-weight:600;color:#fff;">' + formatEuro(proj.pensionTotaleDefinitive) + '</span></div>';
+      html += '</div>';
+    }
+
+    html += '<div class="warn"><strong>Rappel :</strong> pour tester le rachat de trimestres ou obtenir un export PDF, utilisez le <a href="' + urlExpertRachat + '" target="_blank">Mode Expert</a>.</div>';
+
+    document.getElementById('resultat').innerHTML = html;
+    afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteRP, pointsAgircArrco, coefAnticipationArrco, dateDepartDefinitif);
+
+    // Bouton "Mode Expert" de l'ecran de resultat : on y injecte le meme lien avec les donnees
+    document.querySelectorAll('a.btn-secondary[href^="simulateur_retraite_progressive_regime_general_expert.html"]').forEach(a=>{
+      a.setAttribute('href', urlExpertSimple);
+    });
+  }
+
+  function afficherComparateur(dateNaissance, dateDepartRP, trimestresValidesRP, sam, salaireActuelBrut, quotiteActuelle, pointsAgircArrco, coefAnticipationArrco, dateDepartDefinitif){
+    const resPension = calculerPensionBase(dateNaissance, dateDepartRP, trimestresValidesRP, sam);
+    const pensionArrcoTheoriqueMensuelle = (pointsAgircArrco * VALEUR_SERVICE_POINT_ARRCO) / 12;
+    const quotites = [0.40, 0.50, 0.60, 0.70, 0.80];
+    const lignes = quotites.map(q=>{
+      const fraction = 1-q;
+      const pensionBasePart = resPension.pensionMensuelle * fraction;
+      const pensionArrcoPart = pensionArrcoTheoriqueMensuelle * fraction * coefAnticipationArrco;
+      const pensionPart = pensionBasePart + pensionArrcoPart;
+      const salairePart = salaireActuelBrut * q;
+      let pensionDefinitive = null;
+      if(dateDepartDefinitif){
+        const salaireAnnuelReduitQ = salaireActuelBrut * q * 12;
+        const proj = calculerProjectionDefinitive(dateNaissance, dateDepartRP, dateDepartDefinitif, trimestresValidesRP, sam, pointsAgircArrco, salaireAnnuelReduitQ);
+        pensionDefinitive = proj.pensionTotaleDefinitive;
+      }
+      return { q, salairePart, pensionPart, total: salairePart+pensionPart, pensionDefinitive, ok: Math.abs(q-quotiteActuelle)<0.001 };
+    });
+    const maxTotal = Math.max(...lignes.map(l=>l.total));
+
+    let html = '<div class="result-section"><h3>Comparaison du revenu total selon la quotité choisie</h3>';
+    html += '<table><thead><tr><th>Quotité</th><th style="text-align:right;">Salaire réduit</th><th style="text-align:right;">Fraction pension</th><th style="text-align:right;">Total pendant la RP</th>' + (dateDepartDefinitif?'<th style="text-align:right;">Pension définitive</th>':'') + '</tr></thead><tbody>';
+    lignes.forEach(l=>{
+      html += '<tr style="background:'+(l.ok?'#eff6ff':'#fff')+';">';
+      html += '<td style="font-weight:'+(l.ok?'700':'400')+';color:'+(l.ok?'var(--bleu)':'inherit')+';">'+(l.q*100).toFixed(0)+' %'+(l.ok?' &larr;':'')+'</td>';
+      html += '<td style="text-align:right;">'+formatEuro(l.salairePart)+'</td>';
+      html += '<td style="text-align:right;">'+formatEuro(l.pensionPart)+'</td>';
+      html += '<td style="text-align:right;font-weight:700;color:'+(l.ok?'var(--bleu)':'var(--vert)')+';">'+formatEuro(l.total)+'</td>';
+      if(dateDepartDefinitif) html += '<td style="text-align:right;font-weight:600;color:#6d28d9;">'+formatEuro(l.pensionDefinitive)+'</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<p style="font-size:.78rem;color:var(--gris-txt);margin-top:8px;">Rappel : la quotité doit rester entre 40% et 80%.</p>';
+    html += '</div>';
+    document.getElementById('comparateur').innerHTML = html;
+  }
+</script>
+</body>
+</html>
