@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mode d'emploi – Simulateur de Retraite Progressive – Régime Général</title>
+<style>
+  :root{
+    --navy:#1B3A5C; --or:#b45309; --or-clair:#fff7ed; --bleu:#1e40af; --bleu-clair:#eff6ff;
+    --vert:#15803d; --vert-clair:#f0fdf4; --gris-txt:#6b7280; --gris-bord:#e5e7eb; --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a;line-height:1.55;}
+  .hero{background:var(--navy);color:#fff;padding:40px 20px;text-align:center;}
+  .hero h1{margin:0 0 8px;font-size:2rem;}
+  .hero-sub{color:#cbd5e1;max-width:700px;margin:0 auto;font-size:1rem;}
+  .hero-nav{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .hero-nav a{background:rgba(255,255,255,.12);color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:.88rem;}
+  .hero-nav a:hover{background:rgba(255,255,255,.22);}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px 60px;}
+  .breadcrumb{max-width:1000px;margin:16px auto 0;padding:0 20px;font-size:.82rem;color:var(--gris-txt);}
+  .breadcrumb a{color:var(--bleu);text-decoration:none;}
+  .layout{display:grid;grid-template-columns:220px 1fr;gap:30px;margin-top:20px;}
+  nav.side{position:sticky;top:20px;align-self:start;font-size:.86rem;}
+  nav.side p{font-weight:700;color:var(--gris-txt);text-transform:uppercase;font-size:.72rem;letter-spacing:.04em;margin:14px 0 6px;}
+  nav.side p:first-child{margin-top:0;}
+  nav.side a{display:block;color:#334155;text-decoration:none;padding:4px 0;}
+  nav.side a.sub{padding-left:12px;font-size:.82rem;color:var(--gris-txt);}
+  nav.side a:hover{color:var(--bleu);}
+  section{margin-bottom:36px;}
+  .section-eyebrow{color:var(--or);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 4px;}
+  h2{margin:0 0 14px;font-size:1.5rem;color:var(--navy);}
+  h3{color:var(--bleu);font-size:1.1rem;margin:20px 0 8px;}
+  h4{font-size:.98rem;margin:14px 0 6px;}
+  p{margin:8px 0;}
+  .table-wrap{overflow-x:auto;margin:12px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;background:#fff;}
+  th,td{padding:9px 10px;border:1px solid var(--gris-bord);text-align:left;}
+  th{background:var(--bleu);color:#fff;}
+  .alert{padding:12px 14px;border-radius:6px;font-size:.88rem;margin:12px 0;}
+  .alert-orange{background:var(--or-clair);border-left:4px solid var(--or);}
+  .alert-blue{background:var(--bleu-clair);border-left:4px solid var(--bleu);}
+  .alert-green{background:var(--vert-clair);border-left:4px solid var(--vert);}
+  .info-card{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--radius);padding:16px;margin:12px 0;}
+  .info-card h4{margin-top:0;}
+  ol,ul{margin:8px 0;padding-left:22px;}
+  li{margin:4px 0;}
+  a{color:var(--bleu);}
+  footer{text-align:center;font-size:.8rem;color:var(--gris-txt);padding:30px 20px;border-top:1px solid var(--gris-bord);background:#fff;}
+  .back-top{display:inline-block;margin-top:6px;font-size:.82rem;}
+  @media (max-width:800px){.layout{grid-template-columns:1fr;}nav.side{position:static;}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Mode d'<em>emploi</em></h1>
+  <p class="hero-sub">Guide complet pour utiliser le simulateur (salariés du régime général) — paramètres, résultats, retraite progressive, rachat de trimestres.</p>
+  <div class="hero-nav">
+    <a href="simulateur_retraite_progressive_regime_general_expert.html">Mode Expert</a>
+  </div>
+</div>
+
+<div class="breadcrumb"><a href="simulateur_retraite_progressive_regime_general_expert.html">Accueil</a> &rsaquo; Mode d'emploi</div>
+
+<div class="wrap">
+  <div class="layout">
+    <nav class="side">
+      <p>Sur cette page</p>
+      <a href="#demarrage">Démarrage rapide</a>
+      <a href="#perimetre">Qui est concerné ?</a>
+      <p>Paramètres</p>
+      <a href="#identite" class="sub">→ Identité</a>
+      <a href="#carriere" class="sub">→ Carrière au relevé</a>
+      <a href="#projet-rp" class="sub">→ Projet de RP</a>
+      <p>Résultats</p>
+      <a href="#eligibilite" class="sub">→ Éligibilité</a>
+      <a href="#pension-theorique" class="sub">→ Pension théorique</a>
+      <a href="#revenus-rp" class="sub">→ Revenus pendant la RP</a>
+      <a href="#comparateur" class="sub">→ Comparateur de quotités</a>
+      <a href="#pension-definitive" class="sub">→ Pension définitive</a>
+      <p>Rachat</p>
+      <a href="#rachat">Analyse Rachat</a>
+      <p>Références</p>
+      <a href="#sources">Sources &amp; réglementation</a>
+      <a href="#confidentialite">Confidentialité</a>
+    </nav>
+
+    <main>
+      <section id="demarrage">
+        <p class="section-eyebrow">Premiers pas</p>
+        <h2>Démarrage rapide</h2>
+        <ol>
+          <li>Renseignez votre <strong>date de naissance</strong> et votre <strong>sexe</strong> (onglet Paramètres)</li>
+          <li>Reportez les informations de votre <strong>relevé de carrière</strong> (trimestres validés, points Agirc-Arrco), disponible sur <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a></li>
+          <li>Estimez votre <strong>salaire annuel moyen (SAM)</strong> — voir la définition précise plus bas, ce n'est pas votre dernier salaire</li>
+          <li>Choisissez une <strong>quotité de travail</strong> et une <strong>date de départ</strong> en retraite progressive</li>
+          <li>Cliquez sur <strong>"Calculer ma retraite progressive"</strong></li>
+        </ol>
+        <div class="alert alert-orange">&#9888;&#65039; Outil éducatif <strong>NON OFFICIEL</strong>. Pour votre estimation officielle, consultez <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> (simulateur M@rel).</div>
+      </section>
+
+      <section id="perimetre">
+        <p class="section-eyebrow">Périmètre</p>
+        <h2>Qui est concerné par cet outil ?</h2>
+        <p>Ce simulateur couvre les <strong>salariés du régime général</strong> (secteur privé), régime de base <strong>CNAV</strong> + retraite complémentaire <strong>Agirc-Arrco</strong>.</p>
+        <div class="alert alert-blue">
+          <strong>N'est pas couvert par cet outil :</strong>
+          <ul style="margin:6px 0 0;">
+            <li>Les <strong>fonctionnaires</strong> (CPCMR, CNRACL) — voir le simulateur dédié "Retraite Progressive — Fonctionnaire d'État"</li>
+            <li>Les <strong>professions libérales</strong> (CNAVPL) — barème et mécanisme de rachat différents</li>
+            <li>Les <strong>travailleurs indépendants</strong> (SSI) — validation des trimestres par cotisations, pas par salaire</li>
+            <li>Les <strong>régimes spéciaux</strong> (SNCF, RATP, marins, etc.)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="parametres-intro">
+        <p class="section-eyebrow">Saisie</p>
+        <h2>Paramètres de simulation</h2>
+
+        <h3 id="identite">Identité</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Champ</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td>Date de naissance</td><td>Détermine votre génération : âge légal, trimestres requis, âge du taux plein automatique (barème Circulaire Cnav 2026-07)</td></tr>
+            <tr><td>Sexe</td><td>Informatif à ce stade — réservé à de futures majorations liées aux enfants (23/24/25 meilleures années selon le nombre d'enfants)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="carriere">Carrière au relevé</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Champ</th><th>Où le trouver / comment l'estimer</th></tr></thead>
+          <tbody>
+            <tr><td>Trimestres validés</td><td>Relevé de carrière (info-retraite.fr → "Ma carrière"). Tous régimes alignés confondus (privé, agricole, indépendants SSI).</td></tr>
+            <tr><td>Date du relevé</td><td>Date d'arrêt des trimestres ci-dessus (généralement le 31/12 de l'année précédente)</td></tr>
+            <tr><td>Salaire annuel moyen (SAM)</td><td>Moyenne de vos <strong>25 meilleures années</strong> de salaire brut (primes et heures sup incluses, hors remboursements de frais), chaque année plafonnée au PASS (48 060 € en 2026)</td></tr>
+            <tr><td>Points Agirc-Arrco accumulés</td><td>Relevé de carrière (info-retraite.fr ou agirc-arrco.fr)</td></tr>
+          </tbody>
+        </table></div>
+        <div class="alert alert-orange">
+          &#9888;&#65039; <strong>Le SAM n'est PAS votre dernier salaire.</strong> Une carrière en forte progression donne un SAM inférieur au dernier salaire perçu — le site officiel ne l'affiche qu'au moment de la liquidation. Si vous ne le connaissez pas précisément, une approximation raisonnable pour une carrière stable ou croissante est la moyenne de vos 10-15 dernières années.
+        </div>
+        <div class="alert alert-blue">
+          &#8505;&#65039; Le salaire au-delà du PASS ne compte pas dans le SAM (régime de base), mais génère des points Agirc-Arrco en tranche 2 — ce n'est donc pas perdu, juste comptabilisé par un autre régime.
+        </div>
+
+        <h3 id="projet-rp">Projet de retraite progressive</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Champ</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td>Salaire brut mensuel actuel (temps plein)</td><td>Sert de base au calcul du salaire réduit pendant la RP</td></tr>
+            <tr><td>Quotité de travail pendant la RP</td><td>Doit être comprise entre <strong>40% et 80%</strong> d'un temps complet (Décret n°2025-681)</td></tr>
+            <tr><td>Date de départ en RP</td><td>Minimum 60 ans + 150 trimestres tous régimes</td></tr>
+            <tr><td>Date de départ définitif</td><td>Fin de la RP — sert à projeter votre pension définitive avec les trimestres/points accumulés pendant la période</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="resultats-intro">
+        <p class="section-eyebrow">Lecture des résultats</p>
+        <h2>Comprendre les résultats</h2>
+
+        <h3 id="eligibilite">Éligibilité à la date choisie</h3>
+        <p>Deux conditions cumulatives pour accéder à la retraite progressive : <strong>60 ans minimum</strong> et <strong>150 trimestres tous régimes</strong>. Si l'une des deux n'est pas remplie à la date choisie, un avertissement s'affiche et le calcul de la pension théorique reste indicatif.</p>
+
+        <h3 id="pension-theorique">Pension théorique de base</h3>
+        <p>C'est le montant que vous toucheriez de pension <strong>si vous partiez définitivement</strong> à la date de RP choisie — calculé selon la formule officielle :</p>
+        <div class="info-card"><code>Pension = SAM &times; Taux &times; (Trimestres validés / Trimestres requis, plafonné à 100%)</code></div>
+        <p>Le taux plein est de <strong>50%</strong>. S'il manque des trimestres, une <strong>décote</strong> de 0,625 point par trimestre manquant s'applique (soit 1,25% du taux plein de 50%) — retenue sur le plus petit des deux écarts : trimestres manquants pour la durée requise, ou trimestres manquants avant l'âge du taux plein automatique (67 ans). Au-delà, une <strong>surcote</strong> de 1,25% par trimestre supplémentaire cotisé après l'âge légal s'applique.</p>
+
+        <h4>Pension complémentaire théorique (Agirc-Arrco)</h4>
+        <p><code>Points accumulés &times; Valeur de service du point (1,4386 € en 2026)</code></p>
+        <div class="alert alert-orange">
+          &#9888;&#65039; <strong>Piège à connaître :</strong> l'Agirc-Arrco applique son <strong>propre coefficient d'anticipation</strong> si le taux plein n'est pas atteint — distinct de la décote CNAV, et qui s'applique <strong>en plus</strong> de la fraction de retraite progressive. Ce coefficient va de 0,99 (1 trimestre manquant) à 0,78 (20 trimestres manquants ou plus).
+        </div>
+
+        <h3 id="revenus-rp">Vos revenus pendant la retraite progressive</h3>
+        <p><code>Revenu total = Salaire réduit (quotité &times; salaire temps plein) + Fraction de pension de base + Fraction de pension complémentaire</code></p>
+        <p>La fraction de pension versée est égale à <strong>100% moins la quotité de travail</strong> (ex : quotité 60% &rarr; fraction de pension 40%) — même règle pour la base et la complémentaire.</p>
+        <div class="alert alert-orange">
+          &#9888;&#65039; <strong>Alerte trimestres :</strong> avec un salaire réduit, vous pouvez ne plus valider les 4 trimestres par an. Le seuil 2026 est de <strong>1 803 € par trimestre</strong> (150 &times; SMIC horaire). Si votre salaire réduit annuel ne couvre pas 4 fois ce seuil, moins de trimestres seront validés chaque année — ce qui peut retarder votre passage au taux plein.
+        </div>
+
+        <h3 id="comparateur">Comparateur de quotités</h3>
+        <p>Compare le revenu total pour les 5 quotités possibles (40/50/60/70/80%), avec la quotité choisie mise en évidence. Si une date de départ définitif est renseignée, une colonne supplémentaire projette aussi la <strong>pension définitive</strong> pour chaque quotité — utile pour voir si une quotité plus basse (revenu immédiat plus faible) affecte réellement le montant final, ou si l'écart est marginal une fois la RP terminée.</p>
+
+        <h3 id="pension-definitive">Pension à la retraite définitive</h3>
+        <p>Projette votre pension complète (base + complémentaire) à la date de fin de RP choisie, en tenant compte :</p>
+        <ul>
+          <li>des <strong>trimestres supplémentaires</strong> validés pendant la RP (limités par le seuil de validation ci-dessus)</li>
+          <li>des <strong>points Agirc-Arrco supplémentaires</strong> accumulés sur le salaire réduit (taux contractuel 6,20% en tranche 1)</li>
+        </ul>
+        <div class="alert alert-blue">Cette pension est généralement <strong>inférieure</strong> au revenu combiné pendant la RP, puisqu'il n'y a plus de salaire à la retraite définitive — c'est normal et attendu.</div>
+      </section>
+
+      <section id="rachat">
+        <p class="section-eyebrow">Fonctionnalité avancée</p>
+        <h2>Analyse Rachat (Versement Pour La Retraite)</h2>
+        <p>Permet de racheter des trimestres au titre des <strong>années d'études supérieures</strong> ou des <strong>années civiles incomplètes</strong>. Limité à <strong>12 trimestres</strong> sur l'ensemble de la carrière.</p>
+
+        <h4>Les deux options</h4>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Option</th><th>Effet</th><th>Coût</th></tr></thead>
+          <tbody>
+            <tr><td>Taux seul</td><td>Réduit/annule la décote uniquement — n'ajoute rien au ratio trimestres/requis</td><td>Moins cher</td></tr>
+            <tr><td>Taux et durée d'assurance</td><td>Améliore le taux ET le ratio de proratisation (trimestres/requis)</td><td>Plus cher (environ +50%)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h4>Le barème (forfait en euros, pas un pourcentage du salaire comme pour les fonctionnaires)</h4>
+        <p>Le coût dépend de 3 facteurs : votre <strong>âge</strong> au moment du rachat, votre <strong>revenu moyen des 3 dernières années</strong> (3 tranches basées sur le PASS : moins de 36 045 €, entre 36 045 € et 48 060 €, plus de 48 060 €), et l'<strong>option</strong> choisie.</p>
+        <div class="alert alert-orange">
+          &#9888;&#65039; Barème gelé en valeur nominale depuis 2013 — seuls les seuils de revenu (indexés au PASS) évoluent chaque année. Pour la tranche intermédiaire, le tarif est exprimé en % de votre revenu propre : demandez un devis officiel à votre caisse pour un montant garanti.
+        </div>
+
+        <h4>Comparaison avec un placement</h4>
+        <p>L'outil compare le coût réel du rachat (après économie d'impôt) avec ce que rapporterait le même montant placé sur un <strong>Livret A</strong> (taux modifiable, 1,5% par défaut) ou un <strong>PEA</strong> (taux modifiable, 4,6% par défaut — rendement <em>moyen réellement déclaré</em> par les épargnants sur 5 ans selon le baromètre AMF, pas un indice théorique optimiste).</p>
+        <div class="alert alert-blue">Le placement conserve le capital (disponible, transmissible) ; le rachat ne conserve rien mais verse un supplément de pension à vie, y compris au-delà de l'espérance de vie moyenne. Le choix dépend de votre situation patrimoniale et familiale.</div>
+      </section>
+
+      <section id="sources">
+        <p class="section-eyebrow">Références</p>
+        <h2>Sources &amp; réglementation</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Texte</th><th>Objet</th></tr></thead>
+          <tbody>
+            <tr><td>Code de la sécurité sociale — Art. L351-1, L161-17-2, L161-17-3, L351-8</td><td>Calcul de la pension de base, âge légal, durée d'assurance, âge du taux plein automatique</td></tr>
+            <tr><td>Art. L161-22-1-5 à L161-22-1-9 CSS</td><td>Retraite progressive — section unifiée par la loi n°2023-270 du 14/04/2023</td></tr>
+            <tr><td>Décret n°2025-681 du 15/07/2025</td><td>Abaissement de l'âge minimum de la retraite progressive à 60 ans pour toutes générations</td></tr>
+            <tr><td>Loi n°2025-1403 du 30/12/2025 (LFSS 2026), art. 105</td><td>Suspension partielle de la réforme 2023 — décalage de l'âge légal et de la durée d'assurance pour les générations 1964-1968</td></tr>
+            <tr><td>Circulaire Cnav 2026-07 du 05/03/2026</td><td>Barème détaillé âge légal / trimestres requis / âge du taux plein par génération</td></tr>
+            <tr><td>Art. R351-27 CSS</td><td>Coefficient de minoration (décote) — 1,25% du taux plein par trimestre manquant</td></tr>
+            <tr><td>Art. L351-1-2 et D351-1-4 CSS</td><td>Surcote — majoration pour trimestres cotisés au-delà de la durée requise</td></tr>
+            <tr><td>Accord national interprofessionnel Agirc-Arrco du 17/11/2017 (modifié)</td><td>Régime de retraite complémentaire par points, coefficient d'anticipation pour carrière incomplète</td></tr>
+            <tr><td>Circulaire Agirc-Arrco 2025-15-DT du 23/10/2025</td><td>Valeur de service du point (1,4386 €) et valeur d'achat (20,1877 €) pour 2026, gelées</td></tr>
+            <tr><td>Art. L351-14-1 CSS ; Circulaire Cnav 2026-04 du 05/02/2026</td><td>Versement pour la retraite (rachat de trimestres) — barème par âge, revenu et option, inchangé en valeur depuis 2013</td></tr>
+          </tbody>
+        </table></div>
+        <h4>Sites officiels</h4>
+        <ul>
+          <li><a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> — Simulateur inter-régimes officiel (M@rel), relevé de carrière</li>
+          <li><a href="https://www.lassuranceretraite.fr" target="_blank">lassuranceretraite.fr</a> — Assurance Retraite (régime de base)</li>
+          <li><a href="https://www.agirc-arrco.fr" target="_blank">agirc-arrco.fr</a> — Retraite complémentaire</li>
+        </ul>
+        <div class="alert alert-orange">
+          &#9888;&#65039; La réglementation évolue. Le gel de la réforme 2023 est suspendu du 01/09/2026 au 01/01/2028 (LFSS 2026, art. 105) ; les règles applicables après cette date dépendront des décisions prises d'ici là. Vérifiez toujours vos droits sur info-retraite.fr avant toute décision.
+        </div>
+      </section>
+
+      <section id="confidentialite">
+        <p class="section-eyebrow">Vie privée</p>
+        <h2>Confidentialité</h2>
+        <div class="alert alert-green">
+          <strong>100% local — aucune donnée transmise.</strong> Toutes les données saisies restent sur votre appareil, dans votre navigateur. Aucune connexion à un serveur, aucune donnée envoyée, aucun cookie de suivi. Le simulateur fonctionne même hors connexion une fois la page chargée.
+        </div>
+        <p>Ce simulateur est développé bénévolement et mis à disposition gratuitement. Il ne se substitue pas aux outils officiels de l'État. Pour toute décision importante, consultez <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a> ou un conseiller retraite.</p>
+        <p><a class="back-top" href="#demarrage">&uarr; Retour à l'accueil</a></p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <strong>Simulateur de Retraite Progressive — Régime Général — V01</strong><br>
+  Développé bénévolement par J34NMY avec l'assistance de Claude (Anthropic)<br><br>
+  Outil éducatif NON OFFICIEL. Pour votre estimation officielle, consultez <a href="https://www.info-retraite.fr" target="_blank">info-retraite.fr</a>. Aucune donnée saisie n'est transmise.
+</footer>
+
+</body>
+</html>
