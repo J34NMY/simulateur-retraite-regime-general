@@ -124,7 +124,7 @@
           <thead><tr><th>Champ</th><th>Rôle</th></tr></thead>
           <tbody>
             <tr><td>Date de naissance</td><td>Détermine votre génération : âge légal, trimestres requis, âge du taux plein automatique (barème Circulaire Cnav 2026-07)</td></tr>
-            <tr><td>Sexe</td><td>Informatif à ce stade — réservé à de futures majorations liées aux enfants (23/24/25 meilleures années selon le nombre d'enfants)</td></tr>
+            <tr><td>Sexe</td><td>Informatif — l'attribution par défaut de la majoration enfants (art. L351-4 CSS) dépend du sexe (8 trimestres/enfant à la mère, 0 au père sauf cas particulier), ce qui détermine aussi le nombre d'années retenues pour le SAM (24/23 ans, voir ci-dessous)</td></tr>
           </tbody>
         </table></div>
 
@@ -134,7 +134,7 @@
           <tbody>
             <tr><td>Trimestres validés</td><td>Relevé de carrière (info-retraite.fr → "Ma carrière"). Tous régimes alignés confondus (privé, agricole, indépendants SSI).</td></tr>
             <tr><td>Date du relevé</td><td>Date d'arrêt des trimestres ci-dessus (généralement le 31/12 de l'année précédente)</td></tr>
-            <tr><td>Salaire annuel moyen (SAM)</td><td>Moyenne de vos <strong>25 meilleures années</strong> de salaire brut (primes et heures sup incluses, hors remboursements de frais), chaque année plafonnée au PASS (48 060 € en 2026)</td></tr>
+            <tr><td>Salaire annuel moyen (SAM)</td><td>Moyenne de vos <strong>25 meilleures années</strong> de salaire brut (primes et heures sup incluses, hors remboursements de frais), chaque année plafonnée au PASS (48 060 € en 2026) — <strong>24 ans</strong> si vous bénéficiez d'une majoration pour 1 enfant, <strong>23 ans</strong> pour 2 enfants ou plus, depuis le 01/09/2026 (décret n°2026-699). Ce simulateur demande directement votre SAM déjà calculé (relevé info-retraite.fr) — il ne le recalcule pas lui-même.</td></tr>
             <tr><td>Points Agirc-Arrco accumulés</td><td>Relevé de carrière (info-retraite.fr ou agirc-arrco.fr)</td></tr>
           </tbody>
         </table></div>
@@ -226,6 +226,8 @@
           <thead><tr><th>Texte</th><th>Objet</th></tr></thead>
           <tbody>
             <tr><td>Code de la sécurité sociale — Art. L351-1, L161-17-2, L161-17-3, L351-8</td><td>Calcul de la pension de base, âge légal, durée d'assurance, âge du taux plein automatique</td></tr>
+            <tr><td>Code de la sécurité sociale — Art. L351-4</td><td>Majoration de durée d'assurance pour enfants (jusqu'à 8 trimestres/enfant)</td></tr>
+            <tr><td>Décret n°2026-699 du 29/07/2026</td><td>SAM calculé sur 24 ans (1 enfant) ou 23 ans (2+ enfants) au lieu de 25, pensions à effet du 01/09/2026</td></tr>
             <tr><td>Art. L161-22-1-5 à L161-22-1-9 CSS</td><td>Retraite progressive — section unifiée par la loi n°2023-270 du 14/04/2023</td></tr>
             <tr><td>Décret n°2025-681 du 15/07/2025</td><td>Abaissement de l'âge minimum de la retraite progressive à 60 ans pour toutes générations</td></tr>
             <tr><td>Loi n°2025-1403 du 30/12/2025 (LFSS 2026), art. 105</td><td>Suspension partielle de la réforme 2023 — décalage de l'âge légal et de la durée d'assurance pour les générations 1964-1968</td></tr>
