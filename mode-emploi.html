@@ -133,7 +133,7 @@
           <thead><tr><th>Champ</th><th>Où le trouver / comment l'estimer</th></tr></thead>
           <tbody>
             <tr><td>Trimestres validés</td><td>Relevé de carrière (info-retraite.fr → "Ma carrière"). Tous régimes alignés confondus (privé, agricole, indépendants SSI).</td></tr>
-            <tr><td>Date du relevé</td><td>Date d'arrêt des trimestres ci-dessus (généralement le 31/12 de l'année précédente)</td></tr>
+            <tr><td>Date du relevé</td><td>Date d'arrêt des trimestres ci-dessus (généralement le 31/12 de l'année précédente). Les années qui suivent cette date, y compris l'année en cours, sont projetées jusqu'à votre départ. Elle ne peut pas être dans le futur.</td></tr>
             <tr><td>Salaire annuel moyen (SAM)</td><td>Moyenne de vos <strong>25 meilleures années</strong> de salaire brut (primes et heures sup incluses, hors remboursements de frais), chaque année plafonnée au PASS (48 060 € en 2026) — <strong>24 ans</strong> si vous bénéficiez d'une majoration pour 1 enfant, <strong>23 ans</strong> pour 2 enfants ou plus, depuis le 01/09/2026 (décret n°2026-699). Ce simulateur demande directement votre SAM déjà calculé (relevé info-retraite.fr) — il ne le recalcule pas lui-même.</td></tr>
             <tr><td>Points Agirc-Arrco accumulés</td><td>Relevé de carrière (info-retraite.fr ou agirc-arrco.fr)</td></tr>
           </tbody>
@@ -149,10 +149,10 @@
         <div class="table-wrap"><table>
           <thead><tr><th>Champ</th><th>Rôle</th></tr></thead>
           <tbody>
-            <tr><td>Salaire brut mensuel actuel (temps plein)</td><td>Sert de base au calcul du salaire réduit pendant la RP</td></tr>
+            <tr><td>Salaire brut annuel actuel (temps plein)</td><td>Salaire brut sur 12 mois à temps complet, comme sur info-retraite.fr. Sert de base au calcul du salaire réduit pendant la RP et à la validation des trimestres avant la RP</td></tr>
             <tr><td>Quotité de travail pendant la RP</td><td>Doit être comprise entre <strong>40% et 80%</strong> d'un temps complet (Décret n°2025-681)</td></tr>
-            <tr><td>Date de départ en RP</td><td>Minimum 60 ans + 150 trimestres tous régimes</td></tr>
-            <tr><td>Date de départ définitif</td><td>Fin de la RP — sert à projeter votre pension définitive avec les trimestres/points accumulés pendant la période</td></tr>
+            <tr><td>Date de départ en RP</td><td>Minimum 60 ans + 150 trimestres tous régimes. La retraite progressive prend effet le <strong>1<sup>er</sup> jour d'un mois</strong> : une date en cours de mois est reportée au 1<sup>er</sup> du mois suivant (un message l'indique)</td></tr>
+            <tr><td>Date de départ définitif</td><td>Fin de la RP — sert à projeter votre pension définitive avec les trimestres/points accumulés pendant la période. Même règle : effet au 1<sup>er</sup> jour d'un mois</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -232,6 +232,7 @@
             <tr><td>Décret n°2025-681 du 15/07/2025</td><td>Abaissement de l'âge minimum de la retraite progressive à 60 ans pour toutes générations</td></tr>
             <tr><td>Loi n°2025-1403 du 30/12/2025 (LFSS 2026), art. 105</td><td>Suspension partielle de la réforme 2023 — décalage de l'âge légal et de la durée d'assurance pour les générations 1964-1968</td></tr>
             <tr><td>Circulaire Cnav 2026-07 du 05/03/2026</td><td>Barème détaillé âge légal / trimestres requis / âge du taux plein par génération</td></tr>
+            <tr><td>Art. R351-1 et R351-9 CSS</td><td>Cotisations arrêtées au dernier jour du trimestre civil précédant la date d'effet : seuls les trimestres civils entiers écoulés comptent l'année du départ ; 1 trimestre par tranche de 150 h de SMIC, 4 par an au maximum</td></tr>
             <tr><td>Art. R351-27 CSS</td><td>Coefficient de minoration (décote) — 1,25% du taux plein par trimestre manquant</td></tr>
             <tr><td>Art. L351-1-2 et D351-1-4 CSS</td><td>Surcote — majoration pour trimestres cotisés au-delà de la durée requise</td></tr>
             <tr><td>Accord national interprofessionnel Agirc-Arrco du 17/11/2017 (modifié)</td><td>Régime de retraite complémentaire par points, coefficient d'anticipation pour carrière incomplète</td></tr>

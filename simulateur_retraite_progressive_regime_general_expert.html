@@ -98,6 +98,7 @@
 
         <label for="dateReleve">Date du relevé</label>
         <input id="dateReleve" type="date" />
+        <small>Date d'arrêt de vos trimestres et points. Les années qui suivent cette date, y compris l'année en cours, sont projetées jusqu'au départ.</small>
 
         <label for="sam">Salaire annuel moyen estimé (SAM)</label>
         <input id="sam" type="number" min="0" step="100" value="30000" />
@@ -111,9 +112,9 @@
 
       <div class="col">
         <h3>Projet de retraite progressive</h3>
-        <label for="salaireActuelBrut">Salaire brut mensuel actuel (temps plein)</label>
-        <input id="salaireActuelBrut" type="number" min="0" step="50" value="2800" />
-        <small>Sert à calculer votre salaire réduit pendant la RP.</small>
+        <label for="salaireActuelBrut">Salaire brut annuel actuel (temps plein)</label>
+        <input id="salaireActuelBrut" type="number" min="0" step="500" value="33600" />
+        <small>Salaire brut sur 12 mois à temps complet, comme sur info-retraite.fr. Sert à calculer votre salaire réduit pendant la RP.</small>
 
         <label for="quotiteRP">Quotité de travail pendant la RP</label>
         <select id="quotiteRP">
@@ -127,11 +128,13 @@
 
         <label for="dateDepartRP">Date de départ en retraite progressive envisagée</label>
         <input id="dateDepartRP" type="date" />
-        <small>Minimum 60 ans + 150 trimestres tous régimes.</small>
+        <small>Minimum 60 ans + 150 trimestres tous régimes. Effet au 1er jour d'un mois (date reportée au 1er du mois suivant sinon).</small>
+        <small id="noteDateRP" style="display:none;color:#b45309;font-weight:600;margin-top:4px;"></small>
 
         <label for="dateDepartDefinitif">Date de départ définitif envisagée</label>
         <input id="dateDepartDefinitif" type="date" />
-        <small>Fin de la retraite progressive — projection de votre pension définitive à cette date.</small>
+        <small>Fin de la retraite progressive — projection de votre pension définitive à cette date. Effet au 1er jour d'un mois (date reportée au 1er du mois suivant sinon).</small>
+        <small id="noteDateDef" style="display:none;color:#b45309;font-weight:600;margin-top:4px;"></small>
       </div>
     </div>
 
@@ -407,6 +410,57 @@
   function moisEntre(d1, d2){
     return (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth()) - (d2.getDate()<d1.getDate()?1:0);
   }
+
+  // --- Regles de validation des trimestres (regime general) ---
+  // R351-9 CSS : 1 trimestre par tranche de 150 h de SMIC (1 803 EUR en 2026), 4 par an au maximum.
+  // R351-1 CSS : cotisations arretees au dernier jour du trimestre civil precedant la date d'effet :
+  // dans l'annee de la date d'effet, seuls les trimestres civils entierement ecoules comptent.
+  // Compte les trimestres de anneeDebut a l'annee de dateEffet (exclue : trimestres de l'annee d'effet non ecoules),
+  // en retirant cDebut trimestres deja comptes l'annee anneeDebut.
+  function trimestresPeriode(anneeDebut, cDebut, dateEffet, salaireAnnuel){
+    const aE = dateEffet.getUTCFullYear(), mE = dateEffet.getUTCMonth();
+    let total = 0;
+    for(let y = anneeDebut; y <= aE; y++){
+      const qFin = (y < aE) ? 4 : Math.floor(mE/3);
+      const n = qFin - ((y === anneeDebut) ? cDebut : 0);
+      if(n > 0) total += Math.min(n, Math.floor(salaireAnnuel * (n/4) / SEUIL_TRIMESTRE_SMIC));
+    }
+    return total;
+  }
+  function anneeLendemain(d){ return new Date(d.getTime() + 86400000).getUTCFullYear(); }
+
+  // La retraite (progressive ou definitive) prend effet le 1er jour d'un mois (demande de retraite de l'Assurance retraite) :
+  // une date en cours de mois est reportee au 1er du mois suivant.
+  function premierDuMoisSuivant(iso){
+    const p = (iso||'').split('-').map(Number);
+    if(p.length !== 3 || p.some(isNaN)) return { iso: iso, ajustee: false };
+    if(p[2] === 1) return { iso: iso, ajustee: false };
+    const y = p[1] === 12 ? p[0] + 1 : p[0];
+    const m = p[1] === 12 ? 1 : p[1] + 1;
+    return { iso: y + '-' + String(m).padStart(2,'0') + '-01', ajustee: true };
+  }
+  function normaliserDateMois(idInput, idNote){
+    const el = document.getElementById(idInput);
+    const note = document.getElementById(idNote);
+    const r = premierDuMoisSuivant(el.value);
+    if(r.ajustee){
+      const avant = new Date(el.value).toLocaleDateString('fr-FR');
+      el.value = r.iso;
+      note.textContent = 'Date ajustée : la retraite prend effet le 1er jour d\'un mois (' + avant + ' → ' + new Date(r.iso).toLocaleDateString('fr-FR') + ').';
+      note.style.display = 'block';
+      el.dataset.dateAjustee = r.iso;
+    } else if(el.dataset.dateAjustee !== el.value){
+      note.style.display = 'none';
+    }
+    return r;
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    [['dateDepartRP','noteDateRP'],['dateDepartDefinitif','noteDateDef']].forEach(function(a){
+      const el = document.getElementById(a[0]);
+      if(el) el.addEventListener('change', function(){ normaliserDateMois(a[0], a[1]); });
+    });
+  });
+
   function formatEuro(v){
     return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v||0);
   }
@@ -421,7 +475,7 @@
     document.getElementById('dateReleve').value = '2024-12-31';
     document.getElementById('sam').value = '32000';
     document.getElementById('pointsAgircArrco').value = '5200';
-    document.getElementById('salaireActuelBrut').value = '2800';
+    document.getElementById('salaireActuelBrut').value = '33600';
     document.getElementById('quotiteRP').value = '0.60';
     document.getElementById('dateDepartRP').value = '2026-09-01';
     document.getElementById('dateDepartDefinitif').value = '2029-09-01';
@@ -478,9 +532,10 @@
     const PRIX_ACHAT_POINT_ARRCO = 20.1877;
     const TAUX_CONTRACTUEL_T1 = 0.0620;
     const dureeRPAnnees = Math.max(0, moisEntre(dateDepartRP, dateDepartDefinitif)/12);
-    const nbTrimValidablesParAnLocal = Math.min(4, Math.floor(salaireAnnuelReduit / SEUIL_TRIMESTRE_SMIC));
-
-    const trimestresSupplementairesRP = Math.round(nbTrimValidablesParAnLocal * dureeRPAnnees);
+    // Trimestres de la periode de RP : trimestres civils entiers ecoules avant le depart definitif (R351-1), salaire reduit (R351-9)
+    const trimestresSupplementairesRP = dateDepartDefinitif > dateDepartRP
+      ? trimestresPeriode(dateDepartRP.getUTCFullYear(), Math.floor(dateDepartRP.getUTCMonth()/3), dateDepartDefinitif, salaireAnnuelReduit)
+      : 0;
     const trimestresValidesDefinitif = trimestresValidesRP + trimestresSupplementairesRP;
 
     const pointsAnnuelsRP = Math.min(salaireAnnuelReduit, PASS_2026) * TAUX_CONTRACTUEL_T1 / PRIX_ACHAT_POINT_ARRCO;
@@ -499,6 +554,8 @@
 
   function calculer(){
     const dnVal = document.getElementById('dateNaissance').value;
+    if(document.getElementById('dateDepartRP').value) normaliserDateMois('dateDepartRP','noteDateRP');
+    if(document.getElementById('dateDepartDefinitif').value) normaliserDateMois('dateDepartDefinitif','noteDateDef');
     const drpVal = document.getElementById('dateDepartRP').value;
     const drVal = document.getElementById('dateReleve').value;
     if(!dnVal || !drpVal || !drVal){
@@ -511,12 +568,13 @@
     const dateReleve = new Date(drVal);
     const sam = parseFloat(document.getElementById('sam').value) || 0;
     const trimestresValidesReleve = parseInt(document.getElementById('trimestresValides').value) || 0;
-    const salaireActuelBrut = parseFloat(document.getElementById('salaireActuelBrut').value) || 0;
+    // Saisie annuelle (comme info-retraite.fr) ; le moteur travaille en mensuel
+    const salaireAnnuelPleinTemps = parseFloat(document.getElementById('salaireActuelBrut').value) || 0;
+    const salaireActuelBrut = salaireAnnuelPleinTemps / 12;
     const quotiteRP = parseFloat(document.getElementById('quotiteRP').value);
 
-    // Trimestres estimes valides a la date de depart en RP (extrapolation simple depuis le releve, 4 trim/an max)
-    const moisReleveDepart = Math.max(0, moisEntre(dateReleve, dateDepartRP));
-    const trimestresEstimesEntreReleveEtRP = Math.min(Math.floor(moisReleveDepart/3), Math.ceil(moisReleveDepart/3));
+    // Trimestres entre le releve et le depart en RP : annees pleines (150 h SMIC, 4 max) puis trimestres civils entiers de l'annee du depart (R351-1)
+    const trimestresEstimesEntreReleveEtRP = trimestresPeriode(anneeLendemain(dateReleve), 0, dateDepartRP, salaireAnnuelPleinTemps);
     const trimestresValidesRP = trimestresValidesReleve + trimestresEstimesEntreReleveEtRP;
 
     const ageRPMois = moisEntre(dateNaissance, dateDepartRP);

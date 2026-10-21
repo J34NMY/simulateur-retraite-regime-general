@@ -29,6 +29,7 @@ Ce simulateur couvre les **salariés du régime général**. Il ne couvre **pas*
 - **Retraite progressive** : éligibilité (60 ans + 150 trimestres), revenu combiné pendant la RP (salaire réduit + fraction de pension base et complémentaire), alerte sur le seuil de validation des trimestres
 - **Comparateur de quotités** (40/50/60/70/80%) avec projection de la pension définitive par quotité
 - **Pension à la retraite définitive** : projection après la RP, avec trimestres et points accumulés pendant la période
+- **Trimestres** : règle des 150 h de SMIC (art. R351-9 CSS), départs au 1er jour d'un mois, année du départ limitée aux trimestres civils entiers écoulés (art. R351-1 CSS) ; salaire saisi en brut annuel, comme sur info-retraite.fr
 - **Analyse Rachat** (Versement Pour La Retraite) : barème officiel CNAV par âge/revenu/option, comparaison avec un placement (Livret A, PEA)
 - 100% local : aucune donnée transmise, fonctionne hors ligne une fois la page chargée
 
